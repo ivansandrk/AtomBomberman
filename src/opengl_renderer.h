@@ -26,7 +26,7 @@ extern "C" {
 // included here because of SDL_RWops and GLuint
 #include "SDL.h"
 #include "SDL_opengl.h"
-
+#include "graphics.h"
 
 /**
   @brief  Initialise OpenGL renderer
@@ -50,47 +50,40 @@ int opengl_renderer_quit();
 /**
   @brief  Load an image as an OpenGL texture (possibly in video memory)
   @param  data Image data
-  @param  tex Return the number associated with the texture
-  @param  width Return texture width
-  @param  height Return texture height
+  @param  im Image structure to hold the data
   @return 0 on success, -1 on failure
   
   Image has a palette, which is loaded elsewhere.
   (color indexed image)
 */
-int opengl_renderer_load_texture(SDL_RWops *data, GLuint *tex, int *width, int *height);
+int opengl_renderer_load_texture(SDL_RWops *data, Image *im);
 
 /**
   @brief  Load an image as an OpenGL texture (possibly in video memory)
   @param  data Image data
-  @param  tex Return the number associated with the texture
-  @param  width Return texture width
-  @param  height Return texture height
+  @param  im Image structure to hold the data
   @return 0 on success, -1 on failure
   
   Image has no palette, it is 'raw'.
 */
-int opengl_renderer_load_texture_without_palette(SDL_RWops *data, GLuint *tex, int *width, int *height);
+int opengl_renderer_load_texture_without_palette(SDL_RWops *data, Image *im);
 
 /**
   @brief  Free a previously loaded OpenGL texture
-  @param  tex Number associated with the texture
+  @param  im Image structure associated with the texture
   @return 0 on success, -1 on failure
 */
-int opengl_renderer_free_texture(GLuint tex);
+int opengl_renderer_free_texture(Image *im);
 
 /**
   @brief  Draw a texture to the screen
-  @param  tex Number associated with the texture
+  @param  im Image structure to draw
   @param  pal Palette used to draw the texture
   @param  x Drawing location
   @param  y Drawing location
-  @param  width Texture width
-  @param  height Texture height
-  @param  colorkey_index colorkey index into palette
   @return 0 on success, -1 on failure
 */
-int opengl_renderer_draw(GLuint tex, void *pal, int x, int y, int width, int height, int colorkey_index);
+int opengl_renderer_draw(Image *im, void *pal, int x, int y);
 
 /**
   @brief  Begin drawing

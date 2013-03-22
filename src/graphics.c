@@ -110,21 +110,11 @@ Image* load_image(char *file, int hotspot_x, int hotspot_y, int colorkey_index)
 	im->hotspot_x = hotspot_x;
 	im->hotspot_y = hotspot_y;
 	
-	if (config.graphics_renderer == OPENGL_RENDERER)
+	if ((config.graphics_renderer == OPENGL_RENDERER && opengl_renderer_load_texture(data, im) == -1) ||
+	    (config.graphics_renderer == SDL_RENDERER && sdl_renderer_load_image(data, im) == -1))
 	{
-		if (opengl_renderer_load_texture(data, &im->tex, &im->width, &im->height) == -1)
-		{
-			free(im);
-			im = 0;
-		}
-	}
-	else if (config.graphics_renderer == SDL_RENDERER)
-	{
-		if (sdl_renderer_load_image(data, &im->surf, &im->width, &im->height, colorkey_index) == -1)
-		{
-			free(im);
-			im = 0;
-		}
+		free(im);
+		im = 0;
 	}
 	
 	SDL_RWclose(data);
@@ -145,11 +135,12 @@ Image* load_image_without_palette(char *file)
 	}
 	
 	im = (Image*) malloc(sizeof(Image));
+	im->colorkey_index = -1;
 	
 	if (config.graphics_renderer == OPENGL_RENDERER)
-		fail = (opengl_renderer_load_texture_without_palette(data, &im->tex, &im->width, &im->height) == -1);
+		fail = (opengl_renderer_load_texture_without_palette(data, im) == -1);
 	else if (config.graphics_renderer == SDL_RENDERER)
-		fail = (sdl_renderer_load_image(data, &im->surf, &im->width, &im->height, -1) == -1);
+		fail = (sdl_renderer_load_image(data, im) == -1);
 	
 	if (fail)
 	{
@@ -158,7 +149,6 @@ Image* load_image_without_palette(char *file)
 	}
 	else
 	{
-		im->colorkey_index = -1;
 		im->hotspot_x = 0;
 		im->hotspot_y = im->height;
 	}
@@ -172,9 +162,9 @@ int free_image(Image *im)
 	if (im)
 	{
 		if (config.graphics_renderer == OPENGL_RENDERER)
-			opengl_renderer_free_texture(im->tex);
+			opengl_renderer_free_texture(im);
 		else if (config.graphics_renderer == OPENGL_RENDERER)
-			sdl_renderer_free_image(im->surf);
+			sdl_renderer_free_image(im);
 		
 		free(im);
 		return 0;
@@ -192,12 +182,13 @@ int draw(Image *im, int color, int x, int y)
 	else
 		pal = 0;
 	
+	x = x - im->hotspot_x;
+	y = y + im->hotspot_y - im->height;
+	
 	if (config.graphics_renderer == OPENGL_RENDERER)
-		opengl_renderer_draw(im->tex, pal, x - im->hotspot_x, y + im->hotspot_y - im->height, im->width, im->height, im->colorkey_index);
-	
+		opengl_renderer_draw(im, pal, x, y);
 	else if (config.graphics_renderer == SDL_RENDERER)
-		sdl_renderer_draw(im->surf, pal, x - im->hotspot_x, y + im->hotspot_y - im->height);
-	
+		sdl_renderer_draw(im, pal, x, y);
 	else
 		return -1;
 	

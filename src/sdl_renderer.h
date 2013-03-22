@@ -11,14 +11,15 @@ extern "C" {
 
 
 #include "SDL.h"
+#include "graphics.h"
 
 int sdl_renderer_init(int width, int height, int bits_per_pixel, char caption[]);
 int sdl_renderer_quit();
 
-int sdl_renderer_load_image(SDL_RWops *data, SDL_Surface **surf, int *width, int *height, int colorkey_index);
-int sdl_renderer_free_image(SDL_Surface *image);
+int sdl_renderer_load_image(SDL_RWops *data, Image *im);
+int sdl_renderer_free_image(Image *im);
 
-int sdl_renderer_draw(SDL_Surface *surf, void *pal, int x, int y);
+int sdl_renderer_draw(Image *im, void *pal, int x, int y);
 
 int sdl_renderer_drawing_begin();
 int sdl_renderer_drawing_end();

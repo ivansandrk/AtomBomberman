@@ -55,42 +55,42 @@ int sdl_renderer_quit()
 	return 0;
 }
 
-int sdl_renderer_load_image(SDL_RWops *data, SDL_Surface **surf, int *width, int *height, int colorkey_index)
+int sdl_renderer_load_image(SDL_RWops *data, Image *im)
 {
-	SDL_Surface *im;
+	SDL_Surface *surf;
 	
-	if ((im = IMG_Load_RW(data, 0)) == 0)
+	if ((surf = IMG_Load_RW(data, 0)) == 0)
 	{
 		fprintf(stderr, "Unable to load image: %s\n", IMG_GetError());
 		return -1;
 	}
 	
-	*surf = im;
-	*width  = im->w;
-	*height = im->h;
-	if (colorkey_index >= 0 && colorkey_index <= 255)
-		SDL_SetColorKey(im, SDL_SRCCOLORKEY, colorkey_index);
+	im->surf   = surf;
+	im->width  = surf->w;
+	im->height = surf->h;
+	if (im->colorkey_index >= 0 && im->colorkey_index <= 255)
+		SDL_SetColorKey(surf, SDL_SRCCOLORKEY, im->colorkey_index);
 	
 	return 0;
 }
 
-int sdl_renderer_free_image(SDL_Surface *surf)
+int sdl_renderer_free_image(Image *im)
 {
-	SDL_FreeSurface(surf);
+	SDL_FreeSurface(im->surf);
 	
 	return 0;
 }
 
-int sdl_renderer_draw(SDL_Surface *surf, void *pal, int x, int y)
+int sdl_renderer_draw(Image *im, void *pal, int x, int y)
 {
-	SDL_Rect rect = {x, config.height-y-surf->h, 0, 0};
+	SDL_Rect rect = {x, config.height-y-im->surf->h, 0, 0};
 	
 	if (pal)
 	{
-		SDL_SetPalette(surf, SDL_LOGPAL, (SDL_Color*) pal, 0, 256);
+		SDL_SetPalette(im->surf, SDL_LOGPAL, (SDL_Color*) pal, 0, 256);
 	}
 	
-	SDL_BlitSurface(surf, 0, screen, &rect);
+	SDL_BlitSurface(im->surf, 0, screen, &rect);
 	
 	return 0;
 }

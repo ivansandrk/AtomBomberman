@@ -17,13 +17,17 @@ extern "C" {
 
 // included here because of SDL_RWops, GLuint
 #include "SDL.h"
+#ifdef USE_OPENGL
 #include "SDL_opengl.h"
+#endif
 
 
 typedef struct _Image {
 	// number associated with the loaded texture
 	union {
+#ifdef USE_OPENGL
 		GLuint tex;
+#endif
 		SDL_Surface *surf;
 	};
 	
@@ -31,7 +35,7 @@ typedef struct _Image {
 	int height;
 	
 	// hotspots are used for drawing sprites
-	// they tell the spot where the sprite is acting
+	// they tell the spot where the sprite is drawn from
 	int hotspot_x;
 	int hotspot_y;
 	
@@ -92,11 +96,11 @@ int graphics_quit();
 
 /**
   @brief  Load an image from SDL_RWops into memory
-  @param  data Image data
+  @param  file Image file location
   @param  hotspot_x Image hotspot x
   @param  hotspot_y Image hotspot y
   @param  colorkey_index Image colorkey palette index
-  @return Image struct containing data needed for drawing
+  @return Image struct containing data needed for drawing or 0 on failure
   
   Image needs a palette for drawing.
 */
@@ -104,11 +108,8 @@ Image* load_image(char *file, int hotspot_x, int hotspot_y, int colorkey_index);
 
 /**
   @brief  Load an image from SDL_RWops into memory
-  @param  data Image data
-  @param  hotspot_x Image hotspot x
-  @param  hotspot_y Image hotspot y
-  @param  colorkey_index Image colorkey palette index
-  @return Image struct containing data needed for drawing
+  @param  file Image file location
+  @return Image struct containing data needed for drawing or 0 on failure
   
   Image doesnt need a palette, it is 'raw'.
 */
