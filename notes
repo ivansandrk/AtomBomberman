@@ -110,12 +110,13 @@ there is only one flame per tile (the last one)
 
 draw bombers with the cornered animation when they cant move to adjacent tiles, but dont change their position at all
 
-
+sound music play -r 22050 -e signed -b 16 -c 2 -t raw ALLRITE.RSS (debian package sox)
+converting .RSS to .ogg:
+ls *.RSS | parallel -I {} sox -r 22050 -e signed -b 16 -c 2 -t raw {} -C1 {.}.ogg
 
 TODO:
-1. opengl #include flag (so opengl is compile-optional)
+1. opengl #include flag (so opengl is compile-optional) -- almost OK, need to add somewhere -DUSE_OPENGL & -lGL compile flags
 2. better error reporting for missing files (make a macro that calls the function to load the ani so you get the DEFINE name aswell, ie. PATH_ANIM_PUNCH_NORTH)
-3. 
-4. 
+3. check memory usage and also take into account loaded animations (all, almost none)
 
 
