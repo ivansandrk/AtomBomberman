@@ -113,10 +113,11 @@ draw bombers with the cornered animation when they cant move to adjacent tiles, 
 sound music play -r 22050 -e signed -b 16 -c 2 -t raw ALLRITE.RSS (debian package sox)
 converting .RSS to .ogg:
 ls *.RSS | parallel -I {} sox -r 22050 -e signed -b 16 -c 2 -t raw {} -C1 {.}.ogg
+all sounds loaded use ~35MB memory
 
 TODO:
 1. opengl #include flag (so opengl is compile-optional) -- almost OK, need to add somewhere -DUSE_OPENGL & -lGL compile flags
 2. better error reporting for missing files (make a macro that calls the function to load the ani so you get the DEFINE name aswell, ie. PATH_ANIM_PUNCH_NORTH)
 3. check memory usage and also take into account loaded animations (all, almost none)
 
-
+gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb src/bomb.c src/bomber.c src/config.c src/graphics.c src/input.c src/level.c src/main.c src/opengl_renderer.c src/sdl_renderer.c obj/dictionary.o obj/iniparser.o obj/SDL_rwops_zzip.o src/sound.c -Iutil -lSDL_mixer

@@ -15,7 +15,8 @@
 #include "input.h"
 #include "level.h"
 #include "bomb.h"
-
+#include "sound.h"
+ 
 
 // TODO: add "static xyz time_start" which represents start time
 //       so i can calculate the accumulating error of delta time's
@@ -65,9 +66,15 @@ int init()
 {
 	srand(time(0) ^ getpid());
 	
+	if (SDL_Init(0) < 0)
+	{
+		fprintf(stderr, "Error initialising SDL: %s\n", SDL_GetError());
+		return -1;
+	}
+	
 	if (config_init() == -1 ||
-	    graphics_init(config.width, config.height, config.bits_per_pixel,
-	                  config.caption) == -1 ||
+	    graphics_init(config.width, config.height, config.bits_per_pixel, config.caption) == -1 ||
+	    sound_init() == -1 ||
 	    level_init() == -1 ||
 	    bomber_init() == -1 ||
 	    bomb_init() == -1)
@@ -90,6 +97,7 @@ int clean_up()
 	bomb_quit();
 	bomber_quit();
 	level_quit();
+	sound_quit();
 	graphics_quit();
 	config_quit();
 	

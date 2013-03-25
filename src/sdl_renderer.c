@@ -6,6 +6,7 @@
 #include "SDL_image.h"
 #include "SDL_ttf.h"
 #include "SDL_gfxPrimitives.h"
+#include "SDL_rwops_zzip.h"
 
 #include "config.h"
 #include "sdl_renderer.h"
@@ -35,12 +36,12 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, char caption[])
 		fprintf(stderr, "Error initializing SDL_ttf: %s\n", TTF_GetError());
 		return -1;
 	}
-	// /usr/share/fonts/truetype/
-	char *font_filename = "/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-	if ((font = TTF_OpenFont(font_filename, 12)) == 0)
+	
+	SDL_RWops *data = SDL_RWFromZZIP(PATH_FONT, "r");
+	font = TTF_OpenFontRW(data, 1, 12);
+	if (font == 0)
 	{
-		// TODO: move this somewhere else, make it more modular
-		fprintf(stderr, "Error loading font (%s) : %s\n", font_filename, TTF_GetError());
+		fprintf(stderr, "Error loading font (%s) : %s\n", PATH_FONT, TTF_GetError());
 		return -1;
 	}
 	
@@ -49,8 +50,9 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, char caption[])
 
 int sdl_renderer_quit()
 {
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	TTF_CloseFont(font);
 	TTF_Quit();
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	
 	return 0;
 }

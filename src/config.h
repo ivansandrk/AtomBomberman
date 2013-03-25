@@ -82,6 +82,8 @@ extern "C" {
 #define PATH_ANIM_CORNER                "data/graphics/corner%d"
 #define PATH_ANIM_POWERS                "data/graphics/powers"
 
+#define PATH_SOUND                      "data/sound/%s"
+#define PATH_FONT                       "data/FreeSans.ttf"
 
 #define COLOR_GRID                      0x30ff0000
 #define COLOR_GRID_HALF                 0x20ff0000
