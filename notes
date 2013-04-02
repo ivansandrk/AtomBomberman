@@ -119,5 +119,9 @@ TODO:
 1. opengl #include flag (so opengl is compile-optional) -- almost OK, need to add somewhere -DUSE_OPENGL & -lGL compile flags
 2. better error reporting for missing files (make a macro that calls the function to load the ani so you get the DEFINE name aswell, ie. PATH_ANIM_PUNCH_NORTH)
 3. check memory usage and also take into account loaded animations (all, almost none)
+4. separate engine & game logic (specifically loading animations, drawing them, etc.)
+5. event broadcast, listeners - ie. GAME_LOADING, LEVEL_STARTED, BOMB_PLACED, BOMBERMAN_CROSSED_TILE, BOMBERMAN_MOVED (old xy/tile, new xy/tile), BOMB_EXPLODED
+6. ABSTRACTION ABSTRACTION ABSTRACTION ABSTRACTION!
+7. push drawing events - draw tile then on top draw flame. start drawing from top, mark tiles as already drawn to avoid redrawing
 
 gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb src/bomb.c src/bomber.c src/config.c src/graphics.c src/input.c src/level.c src/main.c src/opengl_renderer.c src/sdl_renderer.c obj/dictionary.o obj/iniparser.o obj/SDL_rwops_zzip.o src/sound.c -Iutil -lSDL_mixer

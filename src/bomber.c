@@ -35,8 +35,7 @@ static Anim *anim_corner[8];
 static Image *image_shadow;
 
 
-
-// TODO: bug report - somehow n_bombers was changed to n_bombers-1
+// bug report - somehow n_bombers was changed to n_bombers-1
 // i was playing with the add blocks routine (with the mouse)
 // put blocks over everything, put bombs with all the bombers
 // when i tried resurrecting them, bomber #3 (black) didnt come back
@@ -49,44 +48,43 @@ int n_bombers;
 
 static int bomber_load_graphics()
 {
-	char *str;
+	char buf[128];
 	unsigned int i;
+	ANI *ani;
 	
 	// walking
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_WALK)) == 0)
+	if ((ani = load_anim(PATH_ANIM_WALK)) == 0)
 		return -1;
-	anim_walk[0] = dummy[ndummy]->anim[0];
-	anim_walk[1] = dummy[ndummy]->anim[1];
-	anim_walk[2] = dummy[ndummy]->anim[2];
-	anim_walk[3] = dummy[ndummy]->anim[3];
+	anim_walk[0] = ani->anim[0];
+	anim_walk[1] = ani->anim[1];
+	anim_walk[2] = ani->anim[2];
+	anim_walk[3] = ani->anim[3];
 	// spin
-	anim_spin    = dummy[ndummy]->anim[4];
-	ndummy++;
+	anim_spin    = ani->anim[4];
 	
 	// punching
-	if ((dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_NORTH)) == 0 ||
+	/*if ((dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_NORTH)) == 0 ||
 	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_SOUTH)) == 0 ||
 	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_WEST) ) == 0 ||
 	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_EAST) ) == 0 )
-		return -1;
-	anim_punch[0] = dummy[ndummy-4]->anim[0];
-	anim_punch[1] = dummy[ndummy-3]->anim[0];
-	anim_punch[2] = dummy[ndummy-2]->anim[0];
-	anim_punch[3] = dummy[ndummy-1]->anim[0];
+		return -1;*/
+	anim_punch[0] = load_anim(PATH_ANIM_PUNCH_NORTH)->anim[0];
+	anim_punch[1] = load_anim(PATH_ANIM_PUNCH_SOUTH)->anim[0];
+	anim_punch[2] = load_anim(PATH_ANIM_PUNCH_WEST)->anim[0];
+	anim_punch[3] = load_anim(PATH_ANIM_PUNCH_EAST)->anim[0];
 	
 	// shadow
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_SHADOW)) == 0)
+	if ((ani = load_anim(PATH_ANIM_SHADOW)) == 0)
 		return -1;
-	image_shadow = dummy[ndummy++]->anim[0]->frames[0].im;
+	image_shadow = ani->anim[0]->frames[0].im;
 	
 	// stand
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_STAND)) == 0)
+	if ((ani = load_anim(PATH_ANIM_STAND)) == 0)
 		return -1;
-	anim_stand[0]  = dummy[ndummy]->anim[0];
-	anim_stand[1]  = dummy[ndummy]->anim[1];
-	anim_stand[2]  = dummy[ndummy]->anim[2];
-	anim_stand[3]  = dummy[ndummy]->anim[3];
-	ndummy++;
+	anim_stand[0] = ani->anim[0];
+	anim_stand[1] = ani->anim[1];
+	anim_stand[2] = ani->anim[2];
+	anim_stand[3] = ani->anim[3];
 	
 	
 	// explode
@@ -94,24 +92,20 @@ static int bomber_load_graphics()
 	// TODO: takes too long to load, wonder why? profile!
 	
 	for (i = 0; i < sizeof(used_death_anims) / sizeof(used_death_anims[0]); i++) {
-		asprintf(&str, PATH_ANIM_XPLODE, used_death_anims[i]); // [1, 17]
-		if ((dummy[ndummy] = load_anim(str)) == 0)
+		sprintf(buf, PATH_ANIM_XPLODE, used_death_anims[i]); // [1, 17]
+		if ((ani = load_anim(buf)) == 0)
 			return -1;
-		anim_xplode[i] = dummy[ndummy]->anim[0];
-		ndummy++;
-		free(str);
+		anim_xplode[i] = ani->anim[0];
 	}
 	
 	
 	// corner animations
 	
 	for (i = 0; i < sizeof(used_corner_anims) / sizeof(used_corner_anims[0]); i++) {
-		asprintf(&str, PATH_ANIM_CORNER, used_corner_anims[i]);
-		if ((dummy[ndummy] = load_anim(str)) == 0)
+		sprintf(buf, PATH_ANIM_CORNER, used_corner_anims[i]);
+		if ((ani = load_anim(buf)) == 0)
 			return -1;
-		anim_corner[i] = dummy[ndummy]->anim[0];
-		ndummy++;
-		free(str);
+		anim_corner[i] = ani->anim[0];
 	}
 	
 	return 0;
@@ -192,14 +186,13 @@ int bomber_draw_shadows()
 int bomber_draw_bombers()
 {
 	int i;
-	char *str;
+	char buf[128];
 	
 	for (i = 0; i < n_bombers; i++)
 	{
 		// draw score & kills (TODO - clean this up)
-		asprintf(&str, "S:%d K:%d", bombers[i].score, bombers[i].kills);
-		print(10+i/2*70, 460-(i%2)*20, str);
-		free(str);
+		sprintf(buf, "S:%d K:%d", bombers[i].score, bombers[i].kills);
+		print(10+i/2*70, 460-(i%2)*20, buf);
 		
 		if (!bombers[i].anim)
 			continue;
@@ -244,12 +237,9 @@ static int heading_dy[] = {1, -1,  0, 0};
 // return value >= 0 (usually)
 // but if bomberman just moved away from a occupied tile (when he drops a bomb)
 // return value < 0
-// TODO: fix this so it returns the correct distance a bomber can move
-// (currently it only returns at most the distance of a tile)
 static float bomber_how_much_can_move(float x, float y, int direction)
 {
 	int row, col;
-	int new_row, new_col;
 	float x0, y0;
 	float dx, dy;
 	
@@ -257,27 +247,27 @@ static float bomber_how_much_can_move(float x, float y, int direction)
 	col = x / TILE_WIDTH;
 	
 	// if given bogus x or y or direction
-	if (direction == HEADING_NONE || row < 0 || row >= LEVEL_ROWS || col < 0 ||
-	    col >= LEVEL_COLS)
+	if (direction == HEADING_NONE || row < 0 || row >= LEVEL_ROWS || col < 0 || col >= LEVEL_COLS)
 		return 0.0f;
 	
-	new_row = row + heading_dy[direction];
-	new_col = col + heading_dx[direction];
+	// move tile by tile until you hit an unpassable tile
+	do {
+		row += heading_dy[direction];
+		col += heading_dx[direction];
+	} while (row >= 0 && row < LEVEL_ROWS &&
+	         col >= 0 && col < LEVEL_COLS &&
+	         level_tile_is_passable(row, col));
+	
+	// go back one tile
+	row -= heading_dy[direction];
+	col -= heading_dx[direction];
+	
 	x0 = (col + 0.5f) * TILE_WIDTH;
 	y0 = (row + 0.5f) * TILE_HEIGHT;
-	dx = x - x0;
-	dy = y - y0;
+	dx = x0 - x;
+	dy = y0 - y;
 	
-	if (new_row < 0 || new_row >= LEVEL_ROWS || new_col < 0 ||
-	    new_col >= LEVEL_COLS || !level_tile_is_passable(new_row, new_col))
-	{
-		return -dx * heading_dx[direction] - dy * heading_dy[direction];
-	}
-	
-	if (direction == HEADING_NORTH || direction == HEADING_SOUTH)
-		return (float)TILE_HEIGHT / 2;
-	else // direction == HEADING_WEST || direction == HEADING_EAST
-		return (float)TILE_WIDTH / 2;
+	return dx * heading_dx[direction] + dy * heading_dy[direction];
 }
 
 static int bomber_correct(float *pxy, int tile_measure, float speed)

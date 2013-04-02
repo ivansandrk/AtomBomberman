@@ -8,6 +8,7 @@
 #include "bomb.h"
 #include "bomber.h"
 #include "utlist.h"
+#include "sound.h"
 
 
 static Anim *anim_bomb;
@@ -34,32 +35,30 @@ static int bomb_explode(Bomb *bomb, int kill_owner);
 
 static int bomb_load_graphics()
 {
+	ANI *ani;
 	// normal bombs & jelly bombs
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_BOMB)) == 0)
+	if ((ani = load_anim(PATH_ANIM_BOMB)) == 0)
 		return -1;
-	anim_bomb  = dummy[ndummy]->anim[0];
-	anim_jelly = dummy[ndummy]->anim[1];
-	ndummy++;
+	anim_bomb  = ani->anim[0];
+	anim_jelly = ani->anim[1];
 	
 	// trigger bombs
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_TRIGGER)) == 0)
+	if ((ani = load_anim(PATH_ANIM_TRIGGER)) == 0)
 		return -1;
-	anim_trigger = dummy[ndummy]->anim[0];
-	ndummy++;
+	anim_trigger = ani->anim[0];
 	
 	// flame
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_FLAME)) == 0)
+	if ((ani = load_anim(PATH_ANIM_FLAME)) == 0)
 		return -1;
-	anim_flame[0] = anim_flame_center    = dummy[ndummy]->anim[0];
-	anim_flame[1] = anim_flame_up_mid    = dummy[ndummy]->anim[5];
-	anim_flame[2] = anim_flame_up_tip    = dummy[ndummy]->anim[6];
-	anim_flame[3] = anim_flame_down_mid  = dummy[ndummy]->anim[7];
-	anim_flame[4] = anim_flame_down_tip  = dummy[ndummy]->anim[8];
-	anim_flame[5] = anim_flame_left_mid  = dummy[ndummy]->anim[1];
-	anim_flame[6] = anim_flame_left_tip  = dummy[ndummy]->anim[2];
-	anim_flame[7] = anim_flame_right_mid = dummy[ndummy]->anim[3];
-	anim_flame[8] = anim_flame_right_tip = dummy[ndummy]->anim[4];
-	ndummy++;
+	anim_flame[0] = anim_flame_center    = ani->anim[0];
+	anim_flame[1] = anim_flame_up_mid    = ani->anim[5];
+	anim_flame[2] = anim_flame_up_tip    = ani->anim[6];
+	anim_flame[3] = anim_flame_down_mid  = ani->anim[7];
+	anim_flame[4] = anim_flame_down_tip  = ani->anim[8];
+	anim_flame[5] = anim_flame_left_mid  = ani->anim[1];
+	anim_flame[6] = anim_flame_left_tip  = ani->anim[2];
+	anim_flame[7] = anim_flame_right_mid = ani->anim[3];
+	anim_flame[8] = anim_flame_right_tip = ani->anim[4];
 	
 	return 0;
 }
@@ -107,6 +106,8 @@ int bomb_add_bomb(Bomber *b)
 	}
 	
 	DL_APPEND(head_bomb, bomb);
+	
+	sound_play(SOUNDS_BOMB_DROP);
 	
 	return 0;
 }
@@ -323,6 +324,8 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 	}
 	
 	bomb_add_flame(bomb, kill_owner, n_up, n_down, n_left, n_right);
+	
+	sound_play(SOUNDS_BOMB_EXPLODE);
 	
 	return 0;
 }

@@ -118,11 +118,10 @@ int draw_all()
 	bomber_draw_bombers();
 	
 	// TODO: move this somewhere else?
-	char *tmp;
+	char buf[128];
 	
-	asprintf(&tmp, "FPS %d", frames_per_second);
-	print(570, 460, tmp);
-	free(tmp);//*/
+	sprintf(buf, "FPS %d", frames_per_second);
+	print(570, 460, buf);
 	
 	drawing_end();
 	
@@ -165,6 +164,7 @@ int main(int argc, char *argv[])
 	if (init() == -1)
 		return 0;
 	
+	sound_play_loop(SOUND_WIN);
 	while (!quit)
 	{
 		get_input();

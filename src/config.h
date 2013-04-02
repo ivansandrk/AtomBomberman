@@ -159,11 +159,6 @@ extern float delta_time_real;
 extern int frames_per_second;
 
 
-#include "graphics.h"
-extern ANI *dummy[];
-extern int ndummy;
-
-
 
 char *ini_getstring(dictionary *dict, char *section, char *key, char *def_val);
 int ini_getint(dictionary *dict, char *section, char *key, int def_val);

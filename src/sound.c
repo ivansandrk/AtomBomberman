@@ -14,7 +14,7 @@ static const char *sound_list[] = {"1006.ogg", "1017.ogg", "1028.ogg", "1036.ogg
 static Mix_Chunk *sound_chunk[SOUND_LAST];
 
 // represents the channel a looping sound is played on
-static int sound_loop_channel[SOUNDS_LAST] = {-1};
+static int sound_loop_channel[SOUNDS_LAST];
 
 static int *sounds_lookup[] = {
 	(int[]) {2, SOUND_ENRT1, SOUND_ENRT2}, // SOUNDS_ERROR
@@ -42,6 +42,7 @@ static int *sounds_lookup[] = {
 
 int sound_init()
 {
+	int i;
 	int flags = MIX_INIT_OGG;
 	
 	if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
@@ -63,6 +64,9 @@ int sound_init()
 	}
 	
 	Mix_AllocateChannels(256);
+	
+	for (i = 0; i < SOUNDS_LAST; i++)
+		sound_loop_channel[i] = -1;
 	
 	return 0;
 }

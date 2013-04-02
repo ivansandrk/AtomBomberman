@@ -21,13 +21,6 @@ float delta_time;
 float delta_time_real;
 int frames_per_second;
 
-// dummy structure for saving ANI's
-// -------make sure its only visible in this file - add static qualifier
-// -------(had some nasty bug, it probably accessed the other file's variables)
-// + now its all in one place (right here in config.c)
-ANI *dummy[100];
-int ndummy;
-
 
 int config_init()
 {
@@ -75,11 +68,6 @@ int config_init()
 
 int config_quit()
 {
-	int i;
-	
-	for (i = 0; i < ndummy; i++)
-		free_ani(dummy[i]);
-	
 	// be careful as iniparser_freedict(dict) free's the returned strings
 	// - make a copy with asprintf which automatically allocates space
 	// - or wait till program quit to free it
@@ -192,12 +180,11 @@ int RW_file_set(char *file)
 
 char *ini_getstring(dictionary *dict, char *section, char *key, char *def_val)
 {
-	char *str;
+	char buf[128];
 	char *ret;
 	
-	asprintf(&str, "%s:%s", section, key);
-	ret = iniparser_getstring(dict, str, def_val);
-	free(str);
+	sprintf(buf, "%s:%s", section, key);
+	ret = iniparser_getstring(dict, buf, def_val);
 	
 	return ret;
 }

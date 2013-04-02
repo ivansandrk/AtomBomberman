@@ -23,6 +23,13 @@
 // each one is 256 x RGBA = 1024 bytes
 static void *palette[10];
 
+// dummy structure for saving ANI's
+// -------make sure its only visible in this file - add static qualifier
+// -------(had some nasty bug, it probably accessed the other file's variables)
+// + now its all in one place (right here in config.c)
+static ANI *loaded_ani[100];
+static int n_loaded_ani = 0;
+
 
 int graphics_init(int width, int height, int bits_per_pixel, char caption[])
 {
@@ -76,6 +83,8 @@ int graphics_init(int width, int height, int bits_per_pixel, char caption[])
 
 int graphics_quit()
 {
+	int i;
+	
 	if (config.used_graphics_renderer == OPENGL_RENDERER)
 	{
 		opengl_renderer_quit();
@@ -90,6 +99,11 @@ int graphics_quit()
 	}
 	
 	free_palettes();
+	
+	for (i = 0; i < n_loaded_ani; i++)
+	{
+		free_ani(loaded_ani[i]);
+	}
 	
 	return 0;
 }
@@ -334,7 +348,9 @@ ANI* load_anim(char *path)
 	for (i = 0; i < ani->n_anim; i++)
 	{
 		Anim *anim = ani->anim[i] = malloc(sizeof(Anim));
-		asprintf(&anim->name, "%s", RW_readline(rw_ini));
+		sprintf(buf2, "%s", RW_readline(rw_ini));
+		anim->name = malloc(strlen(buf2) + 1);
+		strcpy(anim->name, buf2);
 		RW_scanf(rw_ini, "%d", &anim->n_frames);
 		anim->frames = malloc(anim->n_frames * sizeof(Frame));
 		
@@ -347,7 +363,7 @@ ANI* load_anim(char *path)
 	
 	SDL_RWclose(rw_ini);
 	
-	return ani;
+	return (loaded_ani[n_loaded_ani++] = ani);
 }
 
 int free_ani(ANI *ani)

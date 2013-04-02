@@ -32,46 +32,6 @@ static int level_load_graphics();
 
 int level_init()
 {
-	/*char *str;
-	
-	asprintf(&str, PATH_IMAGE_LEVEL_BACKGROUND, config.level_layout);
-	if ((image_background = load_image_without_palette(str)) == 0)
-		return -1;
-	free(str);
-	
-	asprintf(&str, PATH_ANIM_LEVEL_TILES, config.level_layout);
-	if ((dummy[ndummy] = load_anim(str)) == 0)
-		return -1;
-	image_tile_brick = dummy[ndummy]->anim[0]->frames[0].im;
-	image_tile_solid = dummy[ndummy]->anim[1]->frames[0].im;
-	ndummy++;
-	free(str);
-	
-	asprintf(&str, PATH_ANIM_LEVEL_XBRICK, config.level_layout);
-	if ((dummy[ndummy] = load_anim(str)) == 0)
-		return -1;
-	anim_xbrick = dummy[ndummy]->anim[0];
-	ndummy++;
-	free(str);
-	
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_LEVEL_EXTRAS)) == 0)
-		return -1;
-	anim_trampoline = dummy[ndummy]->anim[5];
-	image_warp = dummy[ndummy]->anim[4]->frames[0].im;
-	image_arrow[0] = dummy[ndummy]->anim[0]->frames[0].im;
-	image_arrow[1] = dummy[ndummy]->anim[2]->frames[0].im;
-	image_arrow[2] = dummy[ndummy]->anim[3]->frames[0].im;
-	image_arrow[3] = dummy[ndummy]->anim[1]->frames[0].im;
-	ndummy++;
-	
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_LEVEL_CARRY)) == 0)
-		return -1;
-	anim_carry[0] = dummy[ndummy]->anim[2];
-	anim_carry[1] = dummy[ndummy]->anim[3];
-	anim_carry[2] = dummy[ndummy]->anim[0];
-	anim_carry[3] = dummy[ndummy]->anim[1];
-	ndummy++;*/
-	
 	if (level_read_scheme() == -1 ||
 	    level_load_graphics() == -1)
 		return -1;
@@ -183,45 +143,39 @@ int level_tile_is_passable(int row, int col)
 
 static int level_load_graphics()
 {
-	char *str;
+	ANI *ani;
+	char buf[128];
 	
-	asprintf(&str, PATH_IMAGE_LEVEL_BACKGROUND, config.level_layout);
-	if ((image_background = load_image_without_palette(str)) == 0)
+	sprintf(buf, PATH_IMAGE_LEVEL_BACKGROUND, config.level_layout);
+	if ((image_background = load_image_without_palette(buf)) == 0)
 		return -1;
-	free(str);
 	
-	asprintf(&str, PATH_ANIM_LEVEL_TILES, config.level_layout);
-	if ((dummy[ndummy] = load_anim(str)) == 0)
+	sprintf(buf, PATH_ANIM_LEVEL_TILES, config.level_layout);
+	if ((ani = load_anim(buf)) == 0)
 		return -1;
-	image_tile_brick = dummy[ndummy]->anim[0]->frames[0].im;
-	image_tile_solid = dummy[ndummy]->anim[1]->frames[0].im;
-	ndummy++;
-	free(str);
+	image_tile_brick = ani->anim[0]->frames[0].im;
+	image_tile_solid = ani->anim[1]->frames[0].im;
 	
-	asprintf(&str, PATH_ANIM_LEVEL_XBRICK, config.level_layout);
-	if ((dummy[ndummy] = load_anim(str)) == 0)
+	sprintf(buf, PATH_ANIM_LEVEL_XBRICK, config.level_layout);
+	if ((ani = load_anim(buf)) == 0)
 		return -1;
-	anim_xbrick = dummy[ndummy]->anim[0];
-	ndummy++;
-	free(str);
+	anim_xbrick = ani->anim[0];
 	
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_LEVEL_EXTRAS)) == 0)
+	if ((ani = load_anim(PATH_ANIM_LEVEL_EXTRAS)) == 0)
 		return -1;
-	anim_trampoline = dummy[ndummy]->anim[5];
-	image_warp = dummy[ndummy]->anim[4]->frames[0].im;
-	image_arrow[0] = dummy[ndummy]->anim[0]->frames[0].im;
-	image_arrow[1] = dummy[ndummy]->anim[2]->frames[0].im;
-	image_arrow[2] = dummy[ndummy]->anim[3]->frames[0].im;
-	image_arrow[3] = dummy[ndummy]->anim[1]->frames[0].im;
-	ndummy++;
+	anim_trampoline = ani->anim[5];
+	image_warp = ani->anim[4]->frames[0].im;
+	image_arrow[0] = ani->anim[0]->frames[0].im;
+	image_arrow[1] = ani->anim[2]->frames[0].im;
+	image_arrow[2] = ani->anim[3]->frames[0].im;
+	image_arrow[3] = ani->anim[1]->frames[0].im;
 	
-	if ((dummy[ndummy] = load_anim(PATH_ANIM_LEVEL_CARRY)) == 0)
+	if ((ani = load_anim(PATH_ANIM_LEVEL_CARRY)) == 0)
 		return -1;
-	anim_carry[0] = dummy[ndummy]->anim[2];
-	anim_carry[1] = dummy[ndummy]->anim[3];
-	anim_carry[2] = dummy[ndummy]->anim[0];
-	anim_carry[3] = dummy[ndummy]->anim[1];
-	ndummy++;
+	anim_carry[0] = ani->anim[2];
+	anim_carry[1] = ani->anim[3];
+	anim_carry[2] = ani->anim[0];
+	anim_carry[3] = ani->anim[1];
 	
 	return 0;
 }
