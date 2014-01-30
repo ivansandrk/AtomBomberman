@@ -32,6 +32,11 @@
 #include <string.h>
 #include <unistd.h>
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*---------------------------------------------------------------------------
    								New types
  ---------------------------------------------------------------------------*/
@@ -72,7 +77,7 @@ typedef struct _dictionary_ {
   by comparing the key itself in last resort.
  */
 /*--------------------------------------------------------------------------*/
-unsigned dictionary_hash(char * key);
+unsigned dictionary_hash(const char * key);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -112,7 +117,7 @@ void dictionary_del(dictionary * vd);
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-char * dictionary_get(dictionary * d, char * key, char * def);
+const char * dictionary_get(dictionary * d, const char * key, const char * def);
 
 
 /*-------------------------------------------------------------------------*/
@@ -141,7 +146,7 @@ char * dictionary_get(dictionary * d, char * key, char * def);
   This function returns non-zero in case of failure.
  */
 /*--------------------------------------------------------------------------*/
-int dictionary_set(dictionary * vd, char * key, char * val);
+int dictionary_set(dictionary * vd, const char * key, const char * val);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -154,7 +159,7 @@ int dictionary_set(dictionary * vd, char * key, char * val);
   key cannot be found.
  */
 /*--------------------------------------------------------------------------*/
-void dictionary_unset(dictionary * d, char * key);
+void dictionary_unset(dictionary * d, const char * key);
 
 
 /*-------------------------------------------------------------------------*/
@@ -170,5 +175,9 @@ void dictionary_unset(dictionary * d, char * key);
  */
 /*--------------------------------------------------------------------------*/
 void dictionary_dump(dictionary * d, FILE * out);
+
+#ifdef __cplusplus
+} /* extern C */
+#endif
 
 #endif

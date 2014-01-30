@@ -8,10 +8,6 @@
 
 #ifndef LEVEL_H
 #define LEVEL_H
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 #include "config.h"
 
@@ -43,8 +39,4 @@ int level_shave_tiles(int row, int col);
 extern Field board[LEVEL_ROWS][LEVEL_COLS];
 
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* LEVEL_H */

@@ -5,14 +5,12 @@
   @version 0.1
   @brief   Middle layer that seperates game code and rendering code; it abstracts the rendering code.
   
-  Uses OpenGL renderer as the backbone. (SDL renderer support is planned)
+  Uses SDL renderer as the backbone. OpenGL renderer currently isn't supported,
+  at some point in the past it used to be.
 */
 
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 // included here because of SDL_RWops, GLuint
@@ -80,13 +78,9 @@ typedef struct _ANI {
 
 /**
   @brief  Initialise graphics subsystem
-  @param  width Screen width
-  @param  height Screen height
-  @param  bits_per_pixel Screen bits per pixel
-  @param  caption Window caption
   @return 0 on success, -1 on failure
 */
-int graphics_init(int width, int height, int bits_per_pixel, char caption[]);
+int graphics_init();
 
 /**
   @brief  Quit graphics subsystem
@@ -189,7 +183,7 @@ int clear_screen();
   @param  path Path to animation directory
   @return ANI structure that holds all the data about the animation (or several animations)
 */
-ANI* load_anim(char *path);
+ANI* load_anim(const char *path);
 
 /**
   @brief  Free an ANI struct
@@ -209,9 +203,5 @@ int draw_bounding_box(int x, int y, int width, int height, int color);
 /** *************************************** hackity-hack-hack *****************************/
 
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* GRAPHICS_H */
 

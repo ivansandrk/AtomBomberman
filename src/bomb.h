@@ -8,9 +8,6 @@
 
 #ifndef BOMB_H
 #define BOMB_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct _Bomb Bomb;
 typedef struct _Flame Flame;
@@ -68,10 +65,8 @@ int bomb_process();
 int bomb_quit();
 
 #include "bomber.h"
+// TODO: clean this stuff too?
 int bomb_add_bomb(Bomber *b);
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* BOMB_H */

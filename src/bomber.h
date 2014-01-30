@@ -8,9 +8,6 @@
 
 #ifndef BOMBER_H
 #define BOMBER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 enum {BOMBER_STATE_WALKING, BOMBER_STATE_PUNCHING, BOMBER_STATE_KICKING,
       BOMBER_STATE_IDLE, BOMBER_STATE_CORNER, BOMBER_STATE_DEAD,
@@ -79,7 +76,4 @@ int bomber_draw_shadows();
 int bomber_draw_bombers();
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* BOMBER_H */

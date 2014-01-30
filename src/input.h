@@ -9,11 +9,8 @@
 
 #ifndef INPUT_H
 #define INPUT_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-
+// TODO: relocate this stuff (to main or config perhaps)
 extern int quit;
 extern int pause_time;
 extern int bullet_time;
@@ -21,11 +18,4 @@ extern int bullet_time;
 int get_input();
 
 
-
-
-
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* INPUT_H */

@@ -10,9 +10,6 @@
 
 #ifndef CONFIG_H
 #define CONFIG_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 #include "SDL.h"
@@ -20,6 +17,7 @@ extern "C" {
 #include "iniparser.h"
 
 
+#define WINDOW_CAPTION                  "JDV Bomberman"
 #define CONFIG_FILE                     "config.ini"
 #define MAX_PLAYERS                     10
 #define MAX_KEYBOARD_PLAYERS            4
@@ -63,12 +61,12 @@ extern "C" {
 
 
 #define PATH_PALETTES_LOCATION          "data/graphics/palettes"
+#define PATH_IMAGE_LEVEL_BACKGROUND     "data/res/field%d.pcx"
 #define PATH_ANIM_WALK                  "data/graphics/walk"
 #define PATH_ANIM_PUNCH_NORTH           "data/graphics/punbomb2"
 #define PATH_ANIM_PUNCH_SOUTH           "data/graphics/punbomb1"
 #define PATH_ANIM_PUNCH_WEST            "data/graphics/punbomb3"
 #define PATH_ANIM_PUNCH_EAST            "data/graphics/punbomb4"
-#define PATH_IMAGE_LEVEL_BACKGROUND     "data/res/field%d.pcx"
 #define PATH_ANIM_LEVEL_TILES           "data/graphics/tiles%d"
 #define PATH_ANIM_LEVEL_XBRICK          "data/graphics/xbrick%d"
 #define PATH_ANIM_SHADOW                "data/graphics/shadow"
@@ -82,8 +80,8 @@ extern "C" {
 #define PATH_ANIM_CORNER                "data/graphics/corner%d"
 #define PATH_ANIM_POWERS                "data/graphics/powers"
 
-#define PATH_SOUND                      "data/sound/%s"
-#define PATH_FONT                       "data/FreeSans.ttf"
+#define SOUND_PATH                      "data/sound/%s"
+#define FONT_PATH                       "data/FreeSans.ttf"
 
 #define COLOR_GRID                      0x30ff0000
 #define COLOR_GRID_HALF                 0x20ff0000
@@ -116,12 +114,11 @@ typedef struct _PLAYER_CONF {
 } PLAYER_CONF;
 
 typedef struct _CONFIG {
-	GRAPHICS_RENDERER graphics_renderer;
-	GRAPHICS_RENDERER used_graphics_renderer;
+	int graphics_renderer;
+	int used_graphics_renderer;
 	int width;
 	int height;
 	int bits_per_pixel;
-	char *caption;
 	
 	int num_players;
 	PLAYER_CONF player_conf[MAX_PLAYERS];
@@ -129,10 +126,10 @@ typedef struct _CONFIG {
 	float walk_anim_frame_distance;
 	
 	int level_layout;
-	int draw_grid;
 	char *level_scheme;
 	
-	// as read from level scheme file
+// ************************************************
+// *******  as read from level scheme file  *******
 	int max_players_on_level;
 	int starting_bombs;        int level_bombs;
 	int starting_flame;        int level_flame;
@@ -148,9 +145,17 @@ typedef struct _CONFIG {
 	int starting_jelly;        int level_jelly;
 	int starting_superdisease; int level_superdisease;
 	int starting_random;       int level_random;
+// ************************************************
+// ************************************************
 	
 	SDLKey key_pause_time;
 	SDLKey key_bullet_time;
+	SDLKey key_draw_grid;
+	SDLKey key_show_fps;
+	
+	int draw_grid;
+	int show_fps;
+	
 } CONFIG;
 
 extern CONFIG config;
@@ -160,26 +165,27 @@ extern int frames_per_second;
 
 
 
-char *ini_getstring(dictionary *dict, char *section, char *key, char *def_val);
-int ini_getint(dictionary *dict, char *section, char *key, int def_val);
-float ini_getfloat(dictionary *dict, char *section, char *key, float def_val);
-char *ini_getstring_symbolic(dictionary *dict, char *section, char *key, char *symb_lookup_section, char *def_symb, char *def_val);
-int ini_getint_symbolic(dictionary *dict, char *section, char *key, char *symb_lookup_section, char *def_symb, int def_val);
-float ini_getfloat_symbolic(dictionary *dict, char *section, char *key, char *symb_lookup_section, char *def_symb, float def_val);
+char *ini_getstring(dictionary *dict, const char *section, const char *key, const char *def_val);
+int   ini_getint   (dictionary *dict, const char *section, const char *key, int def_val);
+float ini_getfloat (dictionary *dict, const char *section, const char *key, float def_val);
 
-char* SDL_RWReadLine(char *buf, int size, SDL_RWops *rw);
+char *ini_getstring_symbolic(dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, const char *def_val);
+int   ini_getint_symbolic   (dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, int def_val);
+float ini_getfloat_symbolic (dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, float def_val);
+
+int    ini_getconstant(dictionary *dict, const char *section, const char *key);
+SDLKey ini_getkey     (dictionary *dict, const char *section, const char *key);
+
+char* SDL_RWReadLine        (char *buf, int size, SDL_RWops *rw);
 char* SDL_RWReadLine_comment(char *buf, int size, SDL_RWops *rw);
 
 extern char RW_file[4096];
 char* RW_readline(SDL_RWops *rw);
 int RW_scanf(SDL_RWops *rw, const char *format, ...);
-int RW_file_set(char *file);
+int RW_file_set(const char *file);
 
 int config_init();
 int config_quit();
 
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* CONFIG_H */

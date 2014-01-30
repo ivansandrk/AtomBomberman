@@ -5,15 +5,12 @@
 
 #ifndef SDL_RENDERER_H
 #define SDL_RENDERER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 #include "SDL.h"
 #include "graphics.h"
 
-int sdl_renderer_init(int width, int height, int bits_per_pixel, char caption[]);
+int sdl_renderer_init(int width, int height, int bits_per_pixel, const char caption[], const char font_path[]);
 int sdl_renderer_quit();
 
 int sdl_renderer_load_image(SDL_RWops *data, Image *im);
@@ -30,8 +27,5 @@ int sdl_renderer_draw_square(int x, int y, int size, int color);
 int sdl_renderer_draw_vline(int x, int y0, int y1, int color);
 int sdl_renderer_draw_hline(int x0, int x1, int y, int color);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* SDL_RENDERER_H */
 

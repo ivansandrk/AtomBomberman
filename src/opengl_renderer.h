@@ -18,9 +18,6 @@
 
 #ifndef OPENGL_RENDERER_H
 #define OPENGL_RENDERER_H
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 // included here because of SDL_RWops and GLuint
@@ -39,7 +36,7 @@ extern "C" {
   On failure prints the error message to stderr. It is possible to use a
   fallback display renderer.
 */
-int opengl_renderer_init(int width, int height, int bits_per_pixel, char caption[]);
+int opengl_renderer_init(int width, int height, int bits_per_pixel, const char caption[]);
 
 /**
   @brief  Quit OpenGL renderer
@@ -108,9 +105,5 @@ int opengl_renderer_drawing_end();
 int opengl_renderer_clear_screen();
 
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* OPENGL_RENDERER_H */
 
