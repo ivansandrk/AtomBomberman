@@ -1,10 +1,12 @@
 CC      = gcc
-LDFLAGS = -lSDL -lGL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb
+LDFLAGS = -lSDL -lGL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb -lSDL_mixer
 CFLAGS  = -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil
 
 BIN     = main
-SOURCES = config.c opengl_renderer.c graphics.c sdl_renderer.c bomber.c input.c level.c bomb.c main.c
-HEADERS = config.h opengl_renderer.h graphics.h sdl_renderer.h bomber.h input.h level.h bomb.h
+SOURCES = $(addprefix src/, config.c opengl_renderer.c graphics.c sdl_renderer.c \
+            bomber.c input.c level.c bomb.c sounds.c main.c)
+HEADERS = $(addprefix src/, config.h opengl_renderer.h graphics.h sdl_renderer.h \
+            bomber.h input.h level.h bomb.h sound.h)
 
 # UTIL doesn't change
 UTIL_SOURCES = iniparser.c dictionary.c SDL_rwops_zzip.c
@@ -16,7 +18,7 @@ UTIL_HEADERS = iniparser.h dictionary.h SDL_rwops_zzip.h utlist.h
 OBJECTS = $(SOURCES:.c=.o)
 
 tt:
-	echo $(OBJECTS)
+	echo $(SOURCES)
 
 all: $(BIN)
 
@@ -38,6 +40,5 @@ clean:
 #	$(CC) ani_parse.c -o ani_parse -lm
 
 
-main: src/$(SOURCES) src/$(HEADERS)
-	$(CC) src/$(SOURCES) -o $(BIN) $(CFLAGS) $(LDFLAGS)
-
+main: $(SOURCES) $(HEADERS)
+	$(CC) $(SOURCES) -o $(BIN) $(CFLAGS) $(LDFLAGS)

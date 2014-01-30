@@ -3,21 +3,25 @@ pic->format-> BitsPerPixel BytesPerPixel palette
 pic->format->palette-> ncolors colors
 struct colors {uint8 r,g,b,unused}
 
-------  images are stored row by row, with neccessary padding (so each row is multiple of 4, pitch = math.ceil(row_len/4.)*4 = (row_len + 3) & ~0x03
+------  images are stored row by row, with neccessary padding (so each row
+is multiple of 4, pitch = math.ceil(row_len/4.)*4 = (row_len + 3) & ~0x03
 
 ~/arhiva/bomberman/atomic/DATA/ANI/MASTER.ALI  contains some info on used .ANI's
 
-dependency: libzzip-dev, libsdl-image1.2-dev, libsdl-gfx1.2-dev (libsdl-mixer1.2-dev, libsdl-net1.2-dev, libsdl-sound1.2-dev, libsdl-ttf2.0-dev)
+dependency: libzzip-dev, libsdl-image1.2-dev, libsdl-gfx1.2-dev (libsdl-mixer1.2-dev,
+            libsdl-net1.2-dev, libsdl-sound1.2-dev, libsdl-ttf2.0-dev)
 
 
 struct bomber:
-	speed, n_bombs, flame_len, n_powerup (for each power up), disease, color?, palette?, player_no, controller (human_xyz or AI_xyz)
+	speed, n_bombs, flame_len, n_powerup (for each power up), disease, color?,
+	palette?, player_no, controller (human_xyz or AI_xyz or network)
 	position, heading, animation frame, kills, deaths, wins, ..
 
 struct player ?
 
 struct bomb:
-	position, animation, flame_len, owner, is_bouncing, is_dud, is_moving, is_flying, is_picked_up, is_thrown, timer
+	position, animation, flame_len, owner, is_bouncing, is_dud, is_moving,
+	is_flying, is_picked_up, is_thrown, timer
 
 struct flame:
 	position, size, time, how much is expanded, ...
@@ -27,15 +31,17 @@ i need a file like config.h which contains all the config parameters
 
 trigger bombs - have only a limited number of trigger bombs
 
-draw game condition (draw time) - if last bomber dies in some time after the one before
+draw game condition (draw time) - if last bomber dies in some time
+                                  after the one before
 end game immortality - otherwise (if its not a draw)
 
 kicked bombs can be stopped with second control
 
-bomberman can only move in one direction at a time, directions have priorities so if you
-press up+left it moves left as much it can then up as long as it cant move left then left ..
-movements are centred thru tiles, you cant go over diagonals, the game corrects the position itself
-i guess to help the player
+bomberman can only move in one direction at a time, directions have priorities so
+if you press up+left it moves left as much it can then up as long as it cant move
+left then left ..
+movements are centred thru tiles, you cant go over diagonals, the game corrects
+the position itself i guess to help the player
 
 flames are stopped by blocks (indestructible & destructible) and by powerups
 flames go thru bombermans
@@ -53,7 +59,8 @@ mflame.ani is used (flame.ani is not)
 devise a way to keep colorkey for each animation/frame
  - probably the best thing is to make an info file for each ani
 
-if a bomb ignites some other bomb, and that other bomb kills a bomberman, the first bomb owner gets the kill
+if a bomb ignites some other bomb, and that other bomb kills a bomberman,
+the first bomb owner gets the kill
 but the second bomb color is still the same it was (actually the flame color)
 
 you can have oil+punch, but you cant have trigger+oil or trigger+punch
@@ -63,65 +70,131 @@ if you have oil+punch and you pick-up trigger, you will drop oil AND punch
 draw shadows before bombermans (before bombs too)
 draw flames normally (sequentially), if they overlap its ok
 
-bomb timer is reset when its punched, when its picked up its not even ticking (starts ticking when it falls)
+bomb timer is reset when its punched, when its picked up its not even ticking
+(starts ticking when it falls)
 
-from data/res load only field?.pcx (im format), everything else from data/graphics (ani format)
+from data/res load only field?.pcx (im format),
+everything else from data/graphics (ani format)
 
 
-these .ANI files need the palette hack: (the ones in parantheses are not used by the game at all)
-applbite, bombs, bwalk1..4, corner0..7, duds, headwipe, kick, mflame, nuckblow, punbomb1..4, pup1..4, stand, triganim, walk, xplode1..17, zen
-(bomanim2, bombanim, bombwalk, bpickup, flame, punch, trigbomb)
+these .ANI files need the palette hack:
+	(the ones in parantheses are not used by the game at all)
+applbite, bombs, bwalk1..4, corner0..7, duds, headwipe, kick, mflame, nuckblow,
+punbomb1..4, pup1..4, stand, triganim, walk, xplode1..17, zen
+	(bomanim2, bombanim, bombwalk, bpickup, flame, punch, trigbomb)
+
 these can be saved as normal pictures, without the "nearest palette color" hack:
-bfont, conveyor, edit, extras, hurry, kface, kfont, misc, powers, shadow, tiles0..10, xbrick0..10
+bfont, conveyor, edit, extras, hurry, kface, kfont, misc, powers, shadow,
+tiles0..10, xbrick0..10
 (aliens1, classics, powboth, powers1, powerso, powerso2, powersok, powerz)
 
 
 ani.ini format explained:
-%d %d - number of images, needs_palette_hack (if its 1 load it as paletted image with the 'hack', if its 0 load it as normal image) - not used yet
-%s %d %d %d - image name, hotspot x, hotspot y, colorkey palette index (colorkey=-1 means theres no colorkey, valid values are [0, 255])
+%d %d - number of images, needs_palette_hack (if its 1 load it as paletted image
+        with the 'hack', if its 0 load it as normal image) - not used yet
+%s %d %d %d - image name, hotspot x, hotspot y, colorkey palette index
+	(colorkey=-1 means theres no colorkey, valid values are [0, 255])
 ... (other images here)
 %d - number of animations
  %s - animation name
  %d - number of frames in this animation
- %d %d %d %d - image number used in this frame, frame x?, frame y?, frames per second??
+ %d %d %d %d - image number used in this frame, frame x?, frame y?,
+               frames per second??
  ... (other frames in this animation here)
 ... (repeat for other animations)
 
-images cant be saved just with a 256 color palette, some have more than 256 colors; probably best to save them as 32bit png with pixel alphas filled in
+images cant be saved just with a 256 color palette, some have more than 256 colors;
+probably best to save them as 32bit png with pixel alphas filled in
 or maybe save them in their original 16bit format? in tga format?
 
-teleport/hole/wormhole/warp - flames go over them, bomberman is immortal when he is transported, they stop bombs
+teleport/hole/wormhole/warp - flames go over them, bomberman is immortal when he
+                              is transported, they stop bombs
 
-when bomb is put on an arrow, or its thrown onto it, it doesnt move because of the arrow
-after bomberman picks a bomb up, the animation is kinda screwed; he moves but the animation is a static image (depending on the heading)
+when bomb is put on an arrow, or its thrown onto it, it doesnt move because of
+the arrow
+after bomberman picks a bomb up, the animation is kinda screwed; he moves but the
+animation is a static image (depending on the heading)
 
-if you drop a trigger bomb and loose the trigger before it detonates, it changes into ordinary bomb
+if you drop a trigger bomb and lose the trigger before it detonates,
+it changes into ordinary bomb
 
 as soon as bomb starts exploding, bomberman can place a new one
 
 
 kad trcim okomito na carry, ne utjece na mene (mozda zbog centriranja?)
-kad me carry nosi na drugi carry koji ima drugi smjer onda me samo prebaci prek ruba
-i centriram se na drugom (kao i kod hodanja)
-bombe se ne centriraju kod drugog carrya, vec se prebaci skroz do centra (onak poskoci)
+kad me carry nosi na drugi carry koji ima drugi smjer onda me samo prebaci prek
+ruba i centriram se na drugom (kao i kod hodanja)
+bombe se ne centriraju kod drugog carrya, vec se prebaci skroz do centra
+(onak poskoci)
 
 flame lasts 500ms; it is drawn under (before) bomberman
 there is only one flame per tile (the last one)
 
-draw bombers with the cornered animation when they cant move to adjacent tiles, but dont change their position at all
+draw bombers with the cornered animation when they cant move to adjacent tiles,
+but dont change their position at all
 
-sound music play -r 22050 -e signed -b 16 -c 2 -t raw ALLRITE.RSS (debian package sox)
+sound music play -r 22050 -e signed -b 16 -c 2 -t raw ALLRITE.RSS
+(debian package sox)
 converting .RSS to .ogg:
 ls *.RSS | parallel -I {} sox -r 22050 -e signed -b 16 -c 2 -t raw {} -C1 {.}.ogg
 all sounds loaded use ~35MB memory
 
+
 TODO:
-1. opengl #include flag (so opengl is compile-optional) -- almost OK, need to add somewhere -DUSE_OPENGL & -lGL compile flags
-2. better error reporting for missing files (make a macro that calls the function to load the ani so you get the DEFINE name aswell, ie. PATH_ANIM_PUNCH_NORTH)
-3. check memory usage and also take into account loaded animations (all, almost none)
-4. separate engine & game logic (specifically loading animations, drawing them, etc.)
-5. event broadcast, listeners - ie. GAME_LOADING, LEVEL_STARTED, BOMB_PLACED, BOMBERMAN_CROSSED_TILE, BOMBERMAN_MOVED (old xy/tile, new xy/tile), BOMB_EXPLODED
-6. ABSTRACTION ABSTRACTION ABSTRACTION ABSTRACTION!
-7. push drawing events - draw tile then on top draw flame. start drawing from top, mark tiles as already drawn to avoid redrawing
+
+** use some other .ini parsing library, iniparser sucks badly
+-- the idiot who wrote it doesn't know what hash is used for in a dictionary
+-- parser needs to support writing back to .ini file
+
+** remove constants from .ini file, they just clutter it up
+
+** fix makefile
+
+** play around with the idea of network play, do some test
+-- #1 implement input lag to test network lag
+
+** find TODO's hidden inside source files
+
+** config var to enable logging into terminal (maybe into log file too)
+-- log init times, sound/anim loading, etc.
+
+** better error reporting for missing files
+-- make a macro that calls the function to load the ani so you get the DEFINE
+   name aswell, ie. PATH_ANIM_PUNCH_NORTH
+
+** check memory usage and also take into account loaded animations
+-- all, almost none
+
+** separate graphics/engine & game logic
+-- specifically loading animations, drawing them, etc.
+
+** event broadcast, listeners - ie. GAME_LOADING, LEVEL_STARTED, BOMB_PLACED, BOMBERMAN_CROSSED_TILE, BOMBERMAN_MOVED (old xy/tile, new xy/tile), BOMB_EXPLODED
+
+** ABSTRACTION ABSTRACTION ABSTRACTION ABSTRACTION!
+
+** push drawing events - currently draws tile then on top draws flame - not good
+-- instead start drawing from top, mark tiles as already drawn to avoid redrawing
+-- dirty rectangles?
+
+
+DONE:
+** remove caption from config.ini, make it a #define
+** separate config from renderers (remove it) -- fix hackity-hack-hack
+** add keys to config for: drawing grid, displaying FPS
+** switch to C++
+** opengl #include flag (so opengl is compile-optional)
+** fix bomberman starting point permutation code
+
 
 gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb src/bomb.c src/bomber.c src/config.c src/graphics.c src/input.c src/level.c src/main.c src/opengl_renderer.c src/sdl_renderer.c obj/dictionary.o obj/iniparser.o obj/SDL_rwops_zzip.o src/sound.c -Iutil -lSDL_mixer
+
+	"settings":
+	{
+		"sublimeclang_options":
+		[
+			"-I/usr/include/SDL/",
+			"-I../util/",
+			"-Iutil/",
+			"-I/home/ivan/bomber/util/"
+		]
+	}
