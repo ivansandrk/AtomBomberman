@@ -1,5 +1,5 @@
 #include "iniparser.h"
-//#include <sstream>
+#include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <vector>
@@ -10,23 +10,16 @@
 FileIO::FileIO(const char* path)
 {
 	m_path = path;
-	m_file = NULL;
+	m_file = fopen(m_path, "r");
+	if (m_file == NULL)
+	{
+		fprintf(stderr, "Unable to open %s: %s\n", m_path, strerror(errno));
+	}
 }
 
 FileIO::~FileIO()
 {
 	fclose(m_file);
-}
-
-int FileIO::init()
-{
-	m_file = fopen(m_path, "r");
-	if (m_file == NULL)
-	{
-		fprintf(stderr, "Unable to open %s: %s\n", m_path, strerror(errno));
-		return -1;
-	}
-	return 0;
 }
 
 inline int FileIO::getc()
@@ -61,7 +54,8 @@ void FileIO::skip_line()
 
 static inline int isname(char c)
 {
-	return isalnum(c) || c == '_';
+	//return isalnum(c) || c == '_';
+	return !(isspace(c) || c == ']' || c == ';' || c == '=');
 }
 
 std::string FileIO::read_name()
@@ -76,39 +70,39 @@ std::string FileIO::read_name()
 	return std::string(buf.begin(), buf.end());
 }
 
-IniParser::IniParser(const char* path)
+IniParser::IniParser(FileIO* io)
 {
-	m_path = path;
-	m_io   = NULL;
+	m_io   = io;
 	m_line = 0;
-}
-
-int IniParser::init()
-{
-	m_io = new FileIO(m_path);
-	if (m_io->init() == -1)
-		return -1;
-	return 0;
 }
 
 IniParser::~IniParser()
 {
 	if (m_io != NULL)
+	{
 		delete m_io;
+		m_io = NULL;
+	}
 }
 
-ParsedLine IniParser::parse_line()
+ParsedLine& IniParser::parse_line()
 {
 	int c;
 	std::vector<char> buf;
-	ParsedLine parsed_line; // TODO returning local variable, crash
+	static ParsedLine parsed_line;
 	
 	m_io->skip_space();
 	c = m_io->getc();
 	
-	if (c == '\n' || c == EOF)
+	if (c == '\n')
 	{
 		parsed_line.type = EMPTY;
+		return parsed_line;
+	}
+	
+	if (c == EOF)
+	{
+		parsed_line.type = END_OF_INI;
 		return parsed_line;
 	}
 	
@@ -126,9 +120,9 @@ ParsedLine IniParser::parse_line()
 	{
 		parsed_line.type = GROUP;
 		m_io->skip_space();
-		parsed_line.pos = m_io->pos();
-		parsed_line.group = m_io->read_name();
-		parsed_line.end = m_io->pos();
+		parsed_line.group.pos = m_io->pos();
+		parsed_line.group.str = m_io->read_name();
+		parsed_line.group.end = m_io->pos();
 		m_io->skip_space();
 		if (m_io->getc() != ']')
 			goto error;
@@ -138,14 +132,16 @@ ParsedLine IniParser::parse_line()
 	
 	parsed_line.type = KEY_VAL;
 	m_io->ungetc(c);
-	parsed_line.pos = m_io->pos();
-	parsed_line.key = m_io->read_name();
-	parsed_line.end = m_io->pos();
+	parsed_line.key.pos = m_io->pos();
+	parsed_line.key.str = m_io->read_name();
+	parsed_line.key.end = m_io->pos();
 	m_io->skip_space();
 	if (m_io->getc() != '=')
 		goto error;
 	m_io->skip_space();
-	parsed_line.val = m_io->read_name();
+	parsed_line.val.pos = m_io->pos();
+	parsed_line.val.str = m_io->read_name();
+	parsed_line.val.end = m_io->pos();
 	m_io->skip_line();
 	
 	return parsed_line;
@@ -153,4 +149,17 @@ ParsedLine IniParser::parse_line()
   error:
 	parsed_line.type = ERROR;
 	return parsed_line;
+}
+
+void IniParser::parse_ini()
+{
+	std::string last_group = "";
+	//ParsedLine& line = parse_line();
+	
+	for (ParsedLine& line = parse_line(); line.type != END_OF_INI; parse_line())
+	{
+	}
+	
+	
+	
 }

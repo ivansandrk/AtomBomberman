@@ -6,7 +6,7 @@ class FileIO {
   public:
 	explicit FileIO(const char* path);
 	~FileIO();
-	int init();
+	//int init();
 	inline int getc();
 	int ungetc(int c);
 	int pos();
@@ -32,28 +32,43 @@ enum LineType {
 	COMMENT,
 	GROUP,
 	KEY_VAL, // with a possible comment after VAL
+	END_OF_INI
 };
 
+struct TokenInfo {
+	std::string str;
+	int pos;
+	int end;
+	
+	TokenInfo() {}
+  private:
+  	TokenInfo(const TokenInfo&);
+  	void operator=(const TokenInfo&);
+};
 
 struct ParsedLine {
 	LineType type;
-	std::string group;
-	std::string key;
-	std::string val;
-	int pos;
-	int end;
+	TokenInfo group;
+	TokenInfo key;
+	TokenInfo val;
+	
+	ParsedLine() {}
+  private:
+  	ParsedLine(const ParsedLine&);
+  	void operator=(const ParsedLine&);
 };
 
 
 class IniParser {
   public:
-	explicit IniParser(const char* path);
+	explicit IniParser(FileIO* io);
 	~IniParser();
-	int init();
-	ParsedLine parse_line();
+	//int init();
+	ParsedLine& parse_line();
+	void parse_ini();
+	
 
   private:
 	FileIO* m_io;
-	const char* m_path;
 	int m_line;
 };
