@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <string>
+#include <map>
+#include <set>
 
-// Make a separate class for reading/writing to ease extensibility
+// a separate class for reading/writing to ease extensibility
 class FileIO {
   public:
 	explicit FileIO(const char* path);
 	~FileIO();
-	//int init();
+	
+	std::string string_id();
+	
 	inline int getc();
 	int ungetc(int c);
 	int pos();
@@ -17,9 +21,12 @@ class FileIO {
 	// eats input chars until newline (eats it too)
 	void skip_line();
 	
-	// reads [_A-Za-z0-9]*
+	// reads group/key [_A-Za-z0-9]*
 	std::string read_name();
-
+	
+	// reads val [^\s;\[\]]*
+	std::string read_val();
+	
   private:
   	const char* m_path;
 	FILE* m_file;
@@ -42,8 +49,8 @@ struct TokenInfo {
 	
 	TokenInfo() {}
   private:
-  	TokenInfo(const TokenInfo&);
-  	void operator=(const TokenInfo&);
+  	//TokenInfo(const TokenInfo&);
+  	//void operator=(const TokenInfo&);
 };
 
 struct ParsedLine {
@@ -51,6 +58,7 @@ struct ParsedLine {
 	TokenInfo group;
 	TokenInfo key;
 	TokenInfo val;
+	std::string error;
 	
 	ParsedLine() {}
   private:
@@ -58,17 +66,29 @@ struct ParsedLine {
   	void operator=(const ParsedLine&);
 };
 
+struct EntryInfo {
+	TokenInfo key;
+	TokenInfo val;
+};
+typedef std::map<std::string, EntryInfo> EntryInfoMap;
+
+struct GroupInfo {
+	TokenInfo group;
+	int first_line_pos;
+	EntryInfoMap entries;
+};
+typedef std::map<std::string, GroupInfo>  GroupInfoMap;
+typedef std::set<EntryInfo*> DirtySet;
 
 class IniParser {
   public:
 	explicit IniParser(FileIO* io);
 	~IniParser();
-	//int init();
 	ParsedLine& parse_line();
-	void parse_ini();
+	int parse_ini();
 	
-
   private:
 	FileIO* m_io;
-	int m_line;
+	GroupInfoMap m_groups;
+	DirtySet m_dirty;
 };
