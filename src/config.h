@@ -12,13 +12,13 @@
 #define CONFIG_H
 
 
-#include "SDL.h"
-// because of dictionary :>
-#include "iniparser.h"
+#include "SDL_keysym.h"
+#include "SDL_rwops.h"
 
 
 #define WINDOW_CAPTION                  "JDV Bomberman"
 #define CONFIG_FILE                     "config.ini"
+#define CONSTANTS_FILE                  "data/constants.ini"
 #define MAX_PLAYERS                     10
 #define MAX_KEYBOARD_PLAYERS            4
 #define LEVEL_ROWS                      11
@@ -30,6 +30,9 @@
 #define STARTING_PLAYER_SPEED           184.6
 #define DRAWING_OFFSET_Y                (-(TILE_HEIGHT)/2)
 #define FLAME_OFFSET_Y                  16
+#define SCREEN_WIDTH                    640
+#define SCREEN_HEIGHT                   480
+#define SCREEN_BITS_PER_PIXEL           32
 
 
 #define ANIM_ANGEL_SPEED                5.0f
@@ -126,7 +129,7 @@ typedef struct _CONFIG {
 	float walk_anim_frame_distance;
 	
 	int level_layout;
-	char *level_scheme;
+	const char *level_scheme;
 	
 // ************************************************
 // *******  as read from level scheme file  *******
@@ -165,16 +168,8 @@ extern int frames_per_second;
 
 
 
-char *ini_getstring(dictionary *dict, const char *section, const char *key, const char *def_val);
-int   ini_getint   (dictionary *dict, const char *section, const char *key, int def_val);
-float ini_getfloat (dictionary *dict, const char *section, const char *key, float def_val);
-
-char *ini_getstring_symbolic(dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, const char *def_val);
-int   ini_getint_symbolic   (dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, int def_val);
-float ini_getfloat_symbolic (dictionary *dict, const char *section, const char *key, const char *symb_lookup_section, const char *def_symb, float def_val);
-
-int    ini_getconstant(dictionary *dict, const char *section, const char *key);
-SDLKey ini_getkey     (dictionary *dict, const char *section, const char *key);
+int ini_getconstant(const char *section, const char *key, int def_val = 0);
+SDLKey ini_getkey(const char *section, const char *key);
 
 char* SDL_RWReadLine        (char *buf, int size, SDL_RWops *rw);
 char* SDL_RWReadLine_comment(char *buf, int size, SDL_RWops *rw);

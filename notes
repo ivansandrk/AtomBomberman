@@ -141,6 +141,9 @@ all sounds loaded use ~35MB memory
 
 
 TODO:
+** put global variables into a single .cpp file
+
+** put SDL* helper functions into a separate file
 
 ** use some other .ini parsing library, iniparser sucks badly
 -- the idiot who wrote it doesn't know what hash is used for in a dictionary
