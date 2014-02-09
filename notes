@@ -141,6 +141,8 @@ all sounds loaded use ~35MB memory
 
 
 TODO:
+** shortcut to mute sound & .ini settings regarding sound
+
 ** put global variables into a single .cpp file
 
 ** put SDL* helper functions into a separate file
@@ -149,7 +151,6 @@ TODO:
 -- the idiot who wrote it doesn't know what hash is used for in a dictionary
 -- parser needs to support writing back to .ini file
 
-** remove constants from .ini file, they just clutter it up
 
 ** fix makefile
 
@@ -160,10 +161,6 @@ TODO:
 
 ** config var to enable logging into terminal (maybe into log file too)
 -- log init times, sound/anim loading, etc.
-
-** better error reporting for missing files
--- make a macro that calls the function to load the ani so you get the DEFINE
-   name aswell, ie. PATH_ANIM_PUNCH_NORTH
 
 ** check memory usage and also take into account loaded animations
 -- all, almost none
@@ -183,10 +180,17 @@ TODO:
 DONE:
 ** remove caption from config.ini, make it a #define
 ** separate config from renderers (remove it) -- fix hackity-hack-hack
-** add keys to config for: drawing grid, displaying FPS
+** add keys to config for drawing grid and displaying FPS
 ** switch to C++
 ** opengl #include flag (so opengl is compile-optional)
 ** fix bomberman starting point permutation code
+** remove constants from .ini file, they just clutter it up
+
+
+DISCARDED:
+** better error reporting for missing files
+-- make a macro that calls the function to load the ani so you get the DEFINE
+   name aswell, ie. PATH_ANIM_PUNCH_NORTH
 
 
 gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb src/bomb.c src/bomber.c src/config.c src/graphics.c src/input.c src/level.c src/main.c src/opengl_renderer.c src/sdl_renderer.c obj/dictionary.o obj/iniparser.o obj/SDL_rwops_zzip.o src/sound.c -Iutil -lSDL_mixer

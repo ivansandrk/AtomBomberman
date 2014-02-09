@@ -6,7 +6,7 @@
 
 // a separate class for reading/writing to ease extensibility
 // if you want to use some other source to read from (ie. SDL_RWops)
-// just inherit this class and virtual methods
+// just inherit this class and write virtual methods
 
 class FileIO {
   public:
@@ -42,12 +42,12 @@ class FileIO {
 class RWIO : public FileIO {
   public:
 	explicit RWIO(const char* path);
-	~RWIO();
-	int init();
+	virtual ~RWIO();
+	virtual int init();
 	
-	int getc();
-	int ungetc(int c);
-	int pos();
+	virtual int getc();
+	virtual int ungetc(int c);
+	virtual int pos();
 	
   protected:
 	SDL_RWops* m_data;
