@@ -141,6 +141,8 @@ all sounds loaded use ~35MB memory
 
 
 TODO:
+** remove UTLIST, use STL
+
 ** shortcut to mute sound & .ini settings regarding sound
 
 ** put global variables into a single .cpp file

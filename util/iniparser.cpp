@@ -9,12 +9,13 @@
 #include <sstream>
 
 
+
 // constants
 const char kGroupBegin   = '[';
 const char kGroupEnd     = ']';
 const char kCommentBegin = ';';
 const char kKeyValDelim  = '=';
-
+const int BufferSize = 2048;
 
 FileIO::FileIO(const char* path)
 {
@@ -93,27 +94,27 @@ static int isval(char c)
 // reads group/key [_A-Za-z0-9]*
 std::string FileIO::read_name()
 {
-	int c;
-	std::vector<char> buf;
+	int c, pos=0;
+	char buf[BufferSize];
 	
-	while (c = getc(), isname(c))
-		buf.push_back(c);
+	while (c = getc(), isname(c) && pos < BufferSize)
+		buf[pos++] = c;
 	ungetc(c);
 	
-	return std::string(buf.begin(), buf.end());
+	return std::string(buf, buf+pos);
 }
 
 // reads val [^\s;]*
 std::string FileIO::read_val()
 {
-	int c;
-	std::vector<char> buf;
+	int c, pos=0;
+	char buf[BufferSize];
 	
-	while (c = getc(), isval(c))
-		buf.push_back(c);
+	while (c = getc(), isval(c) && pos < BufferSize)
+		buf[pos++] = c;
 	ungetc(c);
 	
-	return std::string(buf.begin(), buf.end());
+	return std::string(buf, buf+pos);
 }
 
 IniParser::IniParser(FileIO* io)
