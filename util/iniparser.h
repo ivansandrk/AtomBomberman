@@ -35,6 +35,11 @@ class FileIO {
 	FILE* m_file;
 	
 	std::string m_error;
+	
+  	char m_buf[4096];
+  	int m_read;
+  	int m_pos;
+  	int m_done;
 };
 
 #ifdef USE_SDL_ZZIP

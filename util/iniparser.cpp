@@ -15,12 +15,15 @@ const char kGroupBegin   = '[';
 const char kGroupEnd     = ']';
 const char kCommentBegin = ';';
 const char kKeyValDelim  = '=';
-const int BufferSize = 2048;
+
 
 FileIO::FileIO(const char* path)
 {
 	m_path = path;
 	m_file = NULL;
+	m_read = 0;
+	m_pos  = 0;
+	m_done = 0;
 }
 
 FileIO::~FileIO()
@@ -53,17 +56,26 @@ std::string FileIO::get_error()
 
 int FileIO::getc()
 {
-	return ::getc(m_file);
+	if (m_pos >= m_read) {
+		m_read = fread(m_buf, 1, sizeof(m_buf), m_file);
+		m_done += m_pos;
+		m_pos = 0;
+		if (m_read == 0)
+			return -1;
+	}
+	return m_buf[m_pos++];
 }
 
 int FileIO::ungetc(int c)
 {
-	return ::ungetc(c, m_file);
+	if (m_pos > 0)
+		m_pos--;
+	return c;
 }
 
 int FileIO::pos()
 {
-	return ftell(m_file);
+	return m_done + m_pos;
 }
 
 void FileIO::skip_space()
@@ -88,16 +100,16 @@ static int isname(char c)
 
 static int isval(char c)
 {
-	return !(c == kCommentBegin || isspace(c));
+	return c != kCommentBegin && !isspace(c) && c != EOF;
 }
 
 // reads group/key [_A-Za-z0-9]*
 std::string FileIO::read_name()
 {
 	int c, pos=0;
-	char buf[BufferSize];
+	char buf[2048];
 	
-	while (c = getc(), isname(c) && pos < BufferSize)
+	while (c = getc(), isname(c) && pos < sizeof(buf))
 		buf[pos++] = c;
 	ungetc(c);
 	
@@ -108,9 +120,9 @@ std::string FileIO::read_name()
 std::string FileIO::read_val()
 {
 	int c, pos=0;
-	char buf[BufferSize];
+	char buf[2048];
 	
-	while (c = getc(), isval(c) && pos < BufferSize)
+	while (c = getc(), isval(c) && pos < sizeof(buf))
 		buf[pos++] = c;
 	ungetc(c);
 	
