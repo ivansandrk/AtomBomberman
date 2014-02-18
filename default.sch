@@ -58,11 +58,11 @@ W 0 0 8
 ;   forbidden - zero
 ;   (note the last text field has no effect; it is only a comment)
 
-; JDV Bomberman fields
+; Atomic Bomberman clone fields
 ; starting level_additional
 ; negative number - how many times doing 1-in-10 chance of dropping that powerup
- 2 10  bombs
- 2 10  flame
+ 5 10  bombs
+ 5 10  flame
  0  3  disease
  0  4  kicker
  0  8  skates

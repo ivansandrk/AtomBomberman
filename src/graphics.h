@@ -1,6 +1,6 @@
 /**
   @file    graphics.h
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Aug 2011
   @version 0.1
   @brief   Middle layer that seperates game code and rendering code; it abstracts the rendering code.
@@ -179,7 +179,7 @@ int drawing_end();
 int clear_screen();
 
 /**
-  @brief  Loads an ANI file (JDV uncompressed version) into memory
+  @brief  Loads an ANI file (clone's uncompressed version) into memory
   @param  path Path to animation directory
   @return ANI structure that holds all the data about the animation (or several animations)
 */

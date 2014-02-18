@@ -1,6 +1,6 @@
 /**
   @file    graphics.c
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Aug 2011
   @version 0.1
   @brief   Middle layer that seperates game code and rendering code; it abstracts the rendering code.

@@ -1,6 +1,6 @@
 /**
   @file    level.h
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Aug 2011
   @version 0.1
   @brief   level stuff

@@ -1,6 +1,6 @@
 /**
   @file    config.h
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Aug 2011
   @version 0.1
   @brief   Config parameters, some helper functions, loading stuff, initialising and exiting
@@ -16,7 +16,7 @@
 #include "SDL_rwops.h"
 
 
-#define WINDOW_CAPTION                  "JDV Bomberman"
+#define WINDOW_CAPTION                  "Atom Bomberman"
 #define CONFIG_FILE                     "config.ini"
 #define CONSTANTS_FILE                  "data/constants.ini"
 #define MAX_PLAYERS                     10

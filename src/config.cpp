@@ -1,6 +1,6 @@
 /**
   @file    config.c
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Aug 2011
   @version 0.1
   @brief   Config parameters, some helper functions, loading stuff, initialising and exiting

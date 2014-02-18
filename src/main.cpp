@@ -1,8 +1,3 @@
-/*
- * Testing stuff for JDV Bomberman
- *
- */
-
 #include <stdio.h>
 #include <unistd.h>
 //#include "SDL.h"

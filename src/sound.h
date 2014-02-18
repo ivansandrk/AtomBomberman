@@ -1,6 +1,6 @@
 /**
   @file    sound.h
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Mar 2013
   @version 0.1
   @brief   Sound code.

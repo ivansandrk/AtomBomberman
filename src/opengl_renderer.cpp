@@ -1,9 +1,9 @@
 /**
   @file     opengl_renderer.c
-  @author   johndoevodka
+  @author   ivansandrk
   @date     Aug 2011
   @version  $Revision: 0.1$
-  @brief    OpenGL renderer for JDV Bomberman
+  @brief    OpenGL renderer for Atomic Bomberman clone
   
   Used to work, not working atm. Maybe it works some day again.
 */

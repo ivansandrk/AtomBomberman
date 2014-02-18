@@ -1,9 +1,9 @@
 /**
   @file     opengl_renderer.h
-  @author   johndoevodka
+  @author   ivansandrk
   @date     Aug 2011
   @version  $Revision: 0.1$
-  @brief    OpenGL renderer for JDV Bomberman
+  @brief    OpenGL renderer for Atomic Bomberman clone
   
   long description here
 */
@@ -11,7 +11,7 @@
 // | - what is this?
 // v
 /*
-	$Id: opengl_renderer.h,v 0.1 2011-08-15 19:55:00 johndoevodka Exp $
+	$Id: opengl_renderer.h,v 0.1 2011-08-15 19:55:00 ivansandrk Exp $
 	$Revision: 0.1 $
 */
 

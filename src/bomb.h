@@ -1,6 +1,6 @@
 /**
   @file    bomb.h
-  @author  johndoevodka
+  @author  ivansandrk
   @date    Sep 2011
   @version 0.1
   @brief   bomb stuff
