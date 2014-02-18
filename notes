@@ -170,7 +170,8 @@ TODO:
 ** separate graphics/engine & game logic
 -- specifically loading animations, drawing them, etc.
 
-** event broadcast, listeners - ie. GAME_LOADING, LEVEL_STARTED, BOMB_PLACED, BOMBERMAN_CROSSED_TILE, BOMBERMAN_MOVED (old xy/tile, new xy/tile), BOMB_EXPLODED
+** event broadcast, listeners - ie. GAME_LOADING, LEVEL_STARTED, BOMB_PLACED, BOMBERMAN_CROSSED_TILE,
+   BOMBERMAN_MOVED (old xy/tile, new xy/tile), BOMB_EXPLODED
 
 ** ABSTRACTION ABSTRACTION ABSTRACTION ABSTRACTION!
 
@@ -195,7 +196,10 @@ DISCARDED:
    name aswell, ie. PATH_ANIM_PUNCH_NORTH
 
 
-gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb src/bomb.c src/bomber.c src/config.c src/graphics.c src/input.c src/level.c src/main.c src/opengl_renderer.c src/sdl_renderer.c obj/dictionary.o obj/iniparser.o obj/SDL_rwops_zzip.o src/sound.c -Iutil -lSDL_mixer
+gcc -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -lSDL -lSDL_image -lzzip
+    -lSDL_gfx -lSDL_ttf -ggdb src/bomb.cpp src/bomber.cpp src/config.cpp src/graphics.cpp
+    src/input.cpp src/level.cpp src/main.cpp src/sdl_renderer.cpp obj/iniparser.o
+    obj/SDL_rwops_zzip.o src/sound.cpp -Iutil -lSDL_mixer
 
 	"settings":
 	{

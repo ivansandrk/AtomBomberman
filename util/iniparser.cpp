@@ -81,7 +81,7 @@ int FileIO::pos()
 void FileIO::skip_space()
 {
 	int c;
-	while (c = getc(), isblank(c))
+	while (c = getc(), c == ' ' || c == '\t')
 		continue;
 	ungetc(c);
 }
@@ -95,12 +95,13 @@ void FileIO::skip_line()
 
 static int isname(char c)
 {
-	return isalnum(c) || c == '_';
+	return c == '_' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+	                || (c >= '0' && c <= '9');
 }
 
 static int isval(char c)
 {
-	return c != kCommentBegin && !isspace(c) && c != EOF;
+	return c != kCommentBegin && c != EOF && c != ' ' && c != '\t' && c != '\n' && c != '\r';
 }
 
 // reads group/key [_A-Za-z0-9]*
@@ -109,7 +110,7 @@ std::string FileIO::read_name()
 	int c, pos=0;
 	char buf[2048];
 	
-	while (c = getc(), isname(c) && pos < sizeof(buf))
+	while (c = getc(), isname(c) && pos < (int)sizeof(buf))
 		buf[pos++] = c;
 	ungetc(c);
 	
@@ -122,7 +123,7 @@ std::string FileIO::read_val()
 	int c, pos=0;
 	char buf[2048];
 	
-	while (c = getc(), isval(c) && pos < sizeof(buf))
+	while (c = getc(), isval(c) && pos < (int)sizeof(buf))
 		buf[pos++] = c;
 	ungetc(c);
 	
