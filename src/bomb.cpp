@@ -176,6 +176,14 @@ int bomb_draw_all()
 	return 0;
 }
 
+static void remove_flame(int row, int col, Flame* flame)
+{
+	if (board[row][col].type_info == flame) {
+		board[row][col].type = LEVEL_TILE_EMPTY;
+		board[row][col].type_info = NULL;
+	}
+}
+
 int bomb_process()
 {
 	int i;
@@ -217,39 +225,19 @@ int bomb_process()
 		{
 			g_flames.erase(it);
 			
-			if (board[flame->row][flame->col].type_info == flame)
-			{
-				board[flame->row][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col].type_info = NULL;
-			}
+			remove_flame(flame->row, flame->col, flame);
 			
 			for (i = 1; i <= flame->n_up; i++)
-			if (board[flame->row + i][flame->col].type_info == flame)
-			{
-				board[flame->row + i][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row + i][flame->col].type_info = NULL;
-			}
+				remove_flame(flame->row+i, flame->col, flame);
 			
 			for (i = 1; i <= flame->n_down; i++)
-			if (board[flame->row - i][flame->col].type_info == flame)
-			{
-				board[flame->row - i][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row - i][flame->col].type_info = NULL;
-			}
+				remove_flame(flame->row-i, flame->col, flame);
 			
 			for (i = 1; i <= flame->n_left; i++)
-			if (board[flame->row][flame->col - i].type_info == flame)
-			{
-				board[flame->row][flame->col - i].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col - i].type_info = NULL;
-			}
+				remove_flame(flame->row, flame->col-i, flame);
 			
 			for (i = 1; i <= flame->n_right; i++)
-			if (board[flame->row][flame->col + i].type_info == flame)
-			{
-				board[flame->row][flame->col + i].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col + i].type_info = NULL;
-			}
+				remove_flame(flame->row, flame->col+i, flame);
 			
 			free(flame);
 			continue;
