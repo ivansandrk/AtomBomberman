@@ -1,20 +1,20 @@
 
 #include <assert.h>
 #include <math.h>
+#include <vector>
+using std::vector;
 
 #include "config.h"
 #include "graphics.h"
 #include "level.h"
 #include "bomb.h"
 #include "bomber.h"
-#include "utlist.h"
 #include "sound.h"
 
 
 static Anim *anim_bomb;
 static Anim *anim_jelly;
 static Anim *anim_trigger;
-//static Image *image_shadow;
 static Anim *anim_flame_center;
 static Anim *anim_flame_up_mid;
 static Anim *anim_flame_up_tip;
@@ -26,8 +26,10 @@ static Anim *anim_flame_right_mid;
 static Anim *anim_flame_right_tip;
 static Anim *anim_flame[9];
 
-static Bomb  *head_bomb = 0;
-static Flame *head_flame = 0;
+typedef vector<Bomb*> VecBomb;
+typedef vector<Flame*> VecFlame;
+static VecBomb g_bombs;
+static VecFlame g_flames;
 
 
 static int bomb_add_flame(Bomb *bomb, int kill_owner, int n_up, int n_down, int n_left, int n_right);
@@ -105,7 +107,7 @@ int bomb_add_bomb(Bomber *b)
 		bomb_explode(bomb, ((Flame*)board[row][col].type_info)->kill_owner);
 	}
 	
-	DL_APPEND(head_bomb, bomb);
+	g_bombs.push_back(bomb);
 	
 	sound_play(SOUNDS_BOMB_DROP);
 	
@@ -122,20 +124,15 @@ int bomb_init()
 
 int bomb_quit()
 {
-	Bomb *bomb, *tmp_bomb;
-	Flame *flame, *tmp_flame;
-	
-	DL_FOREACH_SAFE(head_bomb, bomb, tmp_bomb)
-	{
-		DL_DELETE(head_bomb, bomb);
-		free(bomb);
+	for (int i = 0; i < (int)g_bombs.size(); i++) {
+		free(g_bombs[i]);
 	}
+	g_bombs.clear();
 	
-	DL_FOREACH_SAFE(head_flame, flame, tmp_flame)
-	{
-		DL_DELETE(head_flame, flame);
-		free(flame);
+	for (int i = 0; i < (int)g_flames.size(); i++) {
+		free(g_flames[i]);
 	}
+	g_flames.clear();
 	
 	return 0;
 }
@@ -157,8 +154,8 @@ int bomb_draw_all()
 	Bomb *bomb;
 	Flame *flame;
 	
-	DL_FOREACH(head_bomb, bomb)
-	{
+	for (VecBomb::iterator it = g_bombs.begin(); it != g_bombs.end(); it++) {
+		bomb = *it;
 		draw_llc(bomb->anim->frames[bomb->frame].im,
 		         bomb->color,
 		         bomb->x,
@@ -182,12 +179,12 @@ int bomb_draw_all()
 int bomb_process()
 {
 	int i;
-	Bomb *bomb, *tmp_bomb;
-	Flame *flame, *tmp_flame;
+	Bomb *bomb;
+	Flame *flame;
 	
 	// for each bomb update timer, update frame (timer?), delete if necessary
-	DL_FOREACH(head_bomb, bomb)
-	{
+	for (int i = 0; i < (int)g_bombs.size(); i++) {
+		bomb = g_bombs[i];
 		bomb->elapsed_time += delta_time;
 		
 		if (bomb->elapsed_time >= bomb->timer)
@@ -202,61 +199,63 @@ int bomb_process()
 	// this should_be_removed piece of code is required because bomb_explode can remove
 	// bomb's in random fashion - you could lose the next bomb in the list and then
 	// all hell breaks loose
-	DL_FOREACH_SAFE(head_bomb, bomb, tmp_bomb)
-	{
-		if (bomb->should_be_removed)
-		{
-			DL_DELETE(head_bomb, bomb);
-			free(bomb);
+	for (VecBomb::iterator it = g_bombs.begin(); it != g_bombs.end(); ) {
+		if ((*it)->should_be_removed) {
+			free(*it);
+			g_bombs.erase(it);
+		}
+		else {
+			it++;
 		}
 	}
 	
-	DL_FOREACH_SAFE(head_flame, flame, tmp_flame)
-	{
+	for (VecFlame::iterator it = g_flames.begin(); it != g_flames.end(); ) {
+		flame = *it;
 		flame->elapsed_time += delta_time;
 		
 		if (flame->elapsed_time >= flame->timer)
 		{
-			DL_DELETE(head_flame, flame);
+			g_flames.erase(it);
 			
 			if (board[flame->row][flame->col].type_info == flame)
 			{
 				board[flame->row][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col].type_info = 0;
+				board[flame->row][flame->col].type_info = NULL;
 			}
 			
 			for (i = 1; i <= flame->n_up; i++)
 			if (board[flame->row + i][flame->col].type_info == flame)
 			{
 				board[flame->row + i][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row + i][flame->col].type_info = 0;
+				board[flame->row + i][flame->col].type_info = NULL;
 			}
 			
 			for (i = 1; i <= flame->n_down; i++)
 			if (board[flame->row - i][flame->col].type_info == flame)
 			{
 				board[flame->row - i][flame->col].type = LEVEL_TILE_EMPTY;
-				board[flame->row - i][flame->col].type_info = 0;
+				board[flame->row - i][flame->col].type_info = NULL;
 			}
 			
 			for (i = 1; i <= flame->n_left; i++)
 			if (board[flame->row][flame->col - i].type_info == flame)
 			{
 				board[flame->row][flame->col - i].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col - i].type_info = 0;
+				board[flame->row][flame->col - i].type_info = NULL;
 			}
 			
 			for (i = 1; i <= flame->n_right; i++)
 			if (board[flame->row][flame->col + i].type_info == flame)
 			{
 				board[flame->row][flame->col + i].type = LEVEL_TILE_EMPTY;
-				board[flame->row][flame->col + i].type_info = 0;
+				board[flame->row][flame->col + i].type_info = NULL;
 			}
 			
 			free(flame);
 			continue;
 		}
 		
+		it++;
 		// luckily, all the flame anim's have the same amount of frames
 		flame->frame = (int)(flame->elapsed_time / ANIM_FRAME_TIME) % anim_flame_center->n_frames;
 	}
@@ -275,11 +274,12 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 	if (board[row][col].type_info == bomb)
 	{
 		board[row][col].type = LEVEL_TILE_EMPTY;
-		board[row][col].type_info = 0;
+		board[row][col].type_info = NULL;
 	}
 	
 	
-	for (i = row; i < LEVEL_ROWS && level_tile_is_passable(i, col) && i-row <= bomb->flame_len; i++) {}
+	for (i = row; i < LEVEL_ROWS && level_tile_is_passable(i, col) && i-row <= bomb->flame_len; i++)
+		continue;
 	n_up = i - row - 1;
 	
 	if (i < LEVEL_ROWS && i-row <= bomb->flame_len)
@@ -290,7 +290,8 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 			level_brick_explode(i, col);
 	}
 	
-	for (i = row; i >= 0 && level_tile_is_passable(i, col) && row-i <= bomb->flame_len; i--) {}
+	for (i = row; i >= 0 && level_tile_is_passable(i, col) && row-i <= bomb->flame_len; i--)
+		continue;
 	n_down = row - i - 1;
 	
 	if (i >= 0 && row-i <= bomb->flame_len)
@@ -301,7 +302,8 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 			level_brick_explode(i, col);
 	}
 	
-	for (i = col; i >= 0 && level_tile_is_passable(row, i) && col-i <= bomb->flame_len; i--) {}
+	for (i = col; i >= 0 && level_tile_is_passable(row, i) && col-i <= bomb->flame_len; i--)
+		continue;
 	n_left = col - i - 1;
 	
 	if (i >= 0 && col-i <= bomb->flame_len)
@@ -312,7 +314,8 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 			level_brick_explode(row, i);
 	}
 	
-	for (i = col; i < LEVEL_COLS && level_tile_is_passable(row, i) && i-col <= bomb->flame_len; i++) {}
+	for (i = col; i < LEVEL_COLS && level_tile_is_passable(row, i) && i-col <= bomb->flame_len; i++)
+		continue;
 	n_right = i - col - 1;
 	
 	if (i < LEVEL_COLS && i-col <= bomb->flame_len)
@@ -382,7 +385,7 @@ static int bomb_add_flame(Bomb *bomb, int kill_owner, int n_up, int n_down, int 
 		board[flame->row][flame->col + i].flame_type = (i < bomb->flame_len ? FLAME_RIGHT_MID : FLAME_RIGHT_TIP);
 	}
 	
-	DL_APPEND(head_flame, flame);
+	g_flames.push_back(flame);
 	
 	return 0;
 }

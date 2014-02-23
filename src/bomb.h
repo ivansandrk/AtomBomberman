@@ -31,8 +31,6 @@ struct _Bomb {
 	int should_be_removed;
 	int flame_len;
 	//int activated;
-	
-	Bomb *next, *prev;
 };
 
 struct _Flame {
@@ -54,8 +52,6 @@ struct _Flame {
 	int n_right;
 	
 	int frame;
-	
-	Flame *next, *prev;
 };
 
 

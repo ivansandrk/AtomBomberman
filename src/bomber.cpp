@@ -63,11 +63,6 @@ static int bomber_load_graphics()
 	anim_spin    = ani->anim[4];
 	
 	// punching
-	/*if ((dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_NORTH)) == 0 ||
-	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_SOUTH)) == 0 ||
-	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_WEST) ) == 0 ||
-	    (dummy[ndummy++] = load_anim(PATH_ANIM_PUNCH_EAST) ) == 0 )
-		return -1;*/
 	anim_punch[0] = load_anim(PATH_ANIM_PUNCH_NORTH)->anim[0];
 	anim_punch[1] = load_anim(PATH_ANIM_PUNCH_SOUTH)->anim[0];
 	anim_punch[2] = load_anim(PATH_ANIM_PUNCH_WEST)->anim[0];
