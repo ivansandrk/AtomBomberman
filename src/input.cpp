@@ -14,15 +14,6 @@
 // level.h includes config.h itself
 #include "level.h"
 
-int quit = 0;
-
-// sets delta_time to 0 each frame
-int pause_time = 0;
-
-// multiplies delta_time with alpha (0 < alpha < 1)
-// effectively slowing down time
-int bullet_time = 0;
-
 
 int get_input()
 {
@@ -33,13 +24,13 @@ int get_input()
 	while (SDL_PollEvent(&event))
 	switch (event.type) {
 	
-	case SDL_QUIT: quit = 1; break;
+	case SDL_QUIT: config.quit = 1; break;
 	
 	case SDL_KEYDOWN:
 		if (event.key.keysym.sym == config.key_pause_time)
-			pause_time ^= 1;
+			config.pause_time ^= 1;
 		if (event.key.keysym.sym == config.key_bullet_time)
-			bullet_time ^= 1;
+			config.bullet_time ^= 1;
 		if (event.key.keysym.sym == config.key_draw_grid)
 			config.draw_grid ^= 1;
 		if (event.key.keysym.sym == config.key_show_fps)
@@ -63,7 +54,7 @@ int get_input()
 		}
 		
 		switch (event.key.keysym.sym) {
-		case SDLK_ESCAPE: quit = 1; break;
+		case SDLK_ESCAPE: config.quit = 1; break;
 		
 		case SDLK_4: break;
 		

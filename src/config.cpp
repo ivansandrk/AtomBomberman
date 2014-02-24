@@ -41,8 +41,9 @@ int config_init()
 	if (ini == NULL || constants == NULL)
 		return -1;
 	
-	config.graphics_renderer = ini_getconstant("Video", "renderer", AUTO_RENDERER);
+	config.quit = 0;
 	
+	config.graphics_renderer = ini_getconstant("Video", "renderer", AUTO_RENDERER);
 	config.width = SCREEN_WIDTH;
 	config.height = SCREEN_HEIGHT;
 	config.bits_per_pixel = SCREEN_BITS_PER_PIXEL;
@@ -72,11 +73,14 @@ int config_init()
 	
 	config.draw_grid = ini->get_int("Video", "draw_grid", 0);
 	config.show_fps  = ini->get_int("Video", "show_fps" , 0);
+	config.pause_time = 0;
+	config.bullet_time = 0;
+	config.bullet_alpha = ini->get_float("Game", "bullet_alpha", 0.5);
 	
 	config.key_pause_time  = ini_getkey("Game", "key_pause_time");
 	config.key_bullet_time = ini_getkey("Game", "key_bullet_time");
-	config.key_draw_grid   = ini_getkey("Game", "key_draw_grid");
-	config.key_show_fps    = ini_getkey("Game", "key_show_fps");
+	config.key_draw_grid   = ini_getkey("Video", "key_draw_grid");
+	config.key_show_fps    = ini_getkey("Video", "key_show_fps");
 	
 	return 0;
 }

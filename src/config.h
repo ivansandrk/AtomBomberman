@@ -120,6 +120,7 @@ typedef struct _PLAYER_CONF {
 } PLAYER_CONF;
 
 typedef struct _CONFIG {
+	int quit;
 	int graphics_renderer;
 	int used_graphics_renderer;
 	int width;
@@ -159,6 +160,9 @@ typedef struct _CONFIG {
 	SDLKey key_draw_grid;
 	SDLKey key_show_fps;
 	
+	int pause_time;
+	int bullet_time;
+	float bullet_alpha;
 	int draw_grid;
 	int show_fps;
 	

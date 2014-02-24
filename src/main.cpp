@@ -48,10 +48,10 @@ int calc_delta_time()
 	last_tick = tick;
 #endif
 	
-	if (pause_time)
+	if (config.pause_time)
 		delta_time = 0;
-	else if (bullet_time)
-		delta_time *= 0.5f; // TODO: this could be interesting, i can speed up the game :)
+	else if (config.bullet_time)
+		delta_time *= config.bullet_alpha;
 	
 	return 0;
 }
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 		return 0;
 	
 	sound_play_loop(SOUND_WIN);
-	while (!quit)
+	while (!config.quit)
 	{
 		get_input();
 		
