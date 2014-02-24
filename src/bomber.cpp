@@ -226,11 +226,8 @@ int bomber_draw_all()
 }
 
 
-static int heading_dx[] = {0,  0, -1, 1};
-static int heading_dy[] = {1, -1,  0, 0};
-
 // return value >= 0 (usually)
-// but if bomberman just moved away from a occupied tile (when he drops a bomb)
+// but if bomberman just moved away from an occupied tile (when he drops a bomb)
 // return value < 0
 static float bomber_how_much_can_move(float x, float y, int direction)
 {
@@ -247,20 +244,20 @@ static float bomber_how_much_can_move(float x, float y, int direction)
 	
 	// move tile by tile until you hit an unpassable tile
 	do {
-		row += heading_dy[direction];
-		col += heading_dx[direction];
+		row += heading_y[direction];
+		col += heading_x[direction];
 	} while (level_tile_is_passable(row, col));
 	
 	// go back one tile
-	row -= heading_dy[direction];
-	col -= heading_dx[direction];
+	row -= heading_y[direction];
+	col -= heading_x[direction];
 	
 	x0 = (col + 0.5f) * TILE_WIDTH;
 	y0 = (row + 0.5f) * TILE_HEIGHT;
 	dx = x0 - x;
 	dy = y0 - y;
 	
-	return dx * heading_dx[direction] + dy * heading_dy[direction];
+	return dx * heading_x[direction] + dy * heading_y[direction];
 }
 
 static int bomber_correct(float *pxy, int tile_measure, float speed)

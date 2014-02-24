@@ -176,23 +176,11 @@ int bomb_draw_all()
 	return 0;
 }
 
-static void remove_flame(int row, int col, Flame* flame)
-{
-	if (board[row][col].type_info == flame) {
-		board[row][col].type = LEVEL_TILE_EMPTY;
-		board[row][col].type_info = NULL;
-	}
-}
-
 int bomb_process()
 {
-	int i;
-	Bomb *bomb;
-	Flame *flame;
-	
 	// for each bomb update timer, update frame (timer?), delete if necessary
 	for (int i = 0; i < (int)g_bombs.size(); i++) {
-		bomb = g_bombs[i];
+		Bomb *bomb = g_bombs[i];
 		bomb->elapsed_time += delta_time;
 		
 		if (bomb->elapsed_time >= bomb->timer)
@@ -218,28 +206,24 @@ int bomb_process()
 	}
 	
 	for (VecFlame::iterator it = g_flames.begin(); it != g_flames.end(); ) {
-		flame = *it;
+		Flame *flame = *it;
 		flame->elapsed_time += delta_time;
 		
 		if (flame->elapsed_time >= flame->timer)
 		{
-			g_flames.erase(it);
-			
-			remove_flame(flame->row, flame->col, flame);
-			
-			for (i = 1; i <= flame->n_up; i++)
-				remove_flame(flame->row+i, flame->col, flame);
-			
-			for (i = 1; i <= flame->n_down; i++)
-				remove_flame(flame->row-i, flame->col, flame);
-			
-			for (i = 1; i <= flame->n_left; i++)
-				remove_flame(flame->row, flame->col-i, flame);
-			
-			for (i = 1; i <= flame->n_right; i++)
-				remove_flame(flame->row, flame->col+i, flame);
+			// remove flame from tiles
+			for (int d = 0; d < 4; d++)
+				for (int i = 0; i <= flame->len[d]; i++) {
+					int row = flame->row+i*heading_y[d];
+					int col = flame->col+i*heading_x[d];
+					if (board[row][col].type_info == flame) {
+						board[row][col].type = LEVEL_TILE_EMPTY;
+						board[row][col].type_info = NULL;
+					}
+				}
 			
 			free(flame);
+			g_flames.erase(it);
 			continue;
 		}
 		

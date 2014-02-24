@@ -102,6 +102,9 @@ typedef enum _GRAPHICS_RENDERER {AUTO_RENDERER, OPENGL_RENDERER, SDL_RENDERER, N
 enum {HEADING_NORTH, HEADING_SOUTH, HEADING_WEST, HEADING_EAST};
 enum {HEADING_UP,    HEADING_DOWN,  HEADING_LEFT, HEADING_RIGHT, HEADING_NONE};
 
+const int heading_x[] = {0,  0, -1, 1};
+const int heading_y[] = {1, -1,  0, 0};
+
 
 typedef struct _PLAYER_CONF {
 	SDLKey key_up;

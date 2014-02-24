@@ -46,10 +46,15 @@ struct _Flame {
 	int kill_owner;
 	
 	// how much flame goes into each direction
-	int n_up;
-	int n_down;
-	int n_left;
-	int n_right;
+	union {
+		int len[4];
+		struct {
+			int n_up;
+			int n_down;
+			int n_left;
+			int n_right;
+		};
+	};
 	
 	int frame;
 };
