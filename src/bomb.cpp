@@ -32,7 +32,7 @@ static VecBomb g_bombs;
 static VecFlame g_flames;
 
 
-static int bomb_add_flame(Bomb *bomb, int kill_owner, int n_up, int n_down, int n_left, int n_right);
+static int bomb_add_flame(Bomb *bomb, int kill_owner, int len[4]);
 static int bomb_explode(Bomb *bomb, int kill_owner);
 
 static int bomb_load_graphics()
@@ -214,8 +214,8 @@ int bomb_process()
 			// remove flame from tiles
 			for (int d = 0; d < 4; d++)
 				for (int i = 0; i <= flame->len[d]; i++) {
-					int row = flame->row+i*heading_y[d];
-					int col = flame->col+i*heading_x[d];
+					int row = flame->row + i * heading_y[d];
+					int col = flame->col + i * heading_x[d];
 					if (board[row][col].type_info == flame) {
 						board[row][col].type = LEVEL_TILE_EMPTY;
 						board[row][col].type_info = NULL;
@@ -237,9 +237,10 @@ int bomb_process()
 
 static int bomb_explode(Bomb *bomb, int kill_owner)
 {
-	int i;
-	int row = bomb->y / TILE_HEIGHT, col = bomb->x / TILE_WIDTH;
-	int n_up, n_down, n_left, n_right;
+	int i, d;
+	int row = bomb->y / TILE_HEIGHT;
+	int col = bomb->x / TILE_WIDTH;
+	int len[4];
 	
 	bomb->should_be_removed = 1;
 	bombers[bomb->owner].used_bombs--;
@@ -249,56 +250,25 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 		board[row][col].type_info = NULL;
 	}
 	
-	
-	for (i = row; i < LEVEL_ROWS && level_tile_is_passable(i, col) && i-row <= bomb->flame_len; i++)
-		continue;
-	n_up = i - row - 1;
-	
-	if (i < LEVEL_ROWS && i-row <= bomb->flame_len)
-	{
-		if      (board[i][col].type == LEVEL_TILE_BOMB)
-			bomb_explode((Bomb*)board[i][col].type_info, kill_owner);
-		else if (board[i][col].type == LEVEL_TILE_BRICK)
-			level_brick_explode(i, col);
+	for (d = 0; d < 4; d++) {
+		int r, c;
+		for (i = 0; 1; i++) {
+			r = row + i * heading_y[d];
+			c = col + i * heading_x[d];
+			if (!level_tile_is_passable(r, c) || i > bomb->flame_len)
+				break;
+		}
+		len[d] = max(0, i - 1);
+		
+		if (r >= 0 && r < LEVEL_ROWS && c >= 0 && c < LEVEL_COLS && i <= bomb->flame_len) {
+			if (board[r][c].type == LEVEL_TILE_BOMB)
+				bomb_explode((Bomb*)board[r][c].type_info, kill_owner);
+			if (board[r][c].type == LEVEL_TILE_BRICK)
+				level_brick_explode(r, c);
+		}
 	}
 	
-	for (i = row; i >= 0 && level_tile_is_passable(i, col) && row-i <= bomb->flame_len; i--)
-		continue;
-	n_down = row - i - 1;
-	
-	if (i >= 0 && row-i <= bomb->flame_len)
-	{
-		if      (board[i][col].type == LEVEL_TILE_BOMB)
-			bomb_explode((Bomb*)board[i][col].type_info, kill_owner);
-		else if (board[i][col].type == LEVEL_TILE_BRICK)
-			level_brick_explode(i, col);
-	}
-	
-	for (i = col; i >= 0 && level_tile_is_passable(row, i) && col-i <= bomb->flame_len; i--)
-		continue;
-	n_left = col - i - 1;
-	
-	if (i >= 0 && col-i <= bomb->flame_len)
-	{
-		if      (board[row][i].type == LEVEL_TILE_BOMB)
-			bomb_explode((Bomb*)board[row][i].type_info, kill_owner);
-		else if (board[row][i].type == LEVEL_TILE_BRICK)
-			level_brick_explode(row, i);
-	}
-	
-	for (i = col; i < LEVEL_COLS && level_tile_is_passable(row, i) && i-col <= bomb->flame_len; i++)
-		continue;
-	n_right = i - col - 1;
-	
-	if (i < LEVEL_COLS && i-col <= bomb->flame_len)
-	{
-		if      (board[row][i].type == LEVEL_TILE_BOMB)
-			bomb_explode((Bomb*)board[row][i].type_info, kill_owner);
-		else if (board[row][i].type == LEVEL_TILE_BRICK)
-			level_brick_explode(row, i);
-	}
-	
-	bomb_add_flame(bomb, kill_owner, n_up, n_down, n_left, n_right);
+	bomb_add_flame(bomb, kill_owner, len);
 	
 	sound_play(SOUNDS_BOMB_EXPLODE);
 	
@@ -306,9 +276,9 @@ static int bomb_explode(Bomb *bomb, int kill_owner)
 }
 
 
-static int bomb_add_flame(Bomb *bomb, int kill_owner, int n_up, int n_down, int n_left, int n_right)
+static int bomb_add_flame(Bomb *bomb, int kill_owner, int len[4])
 {
-	int i;
+	int i, d;
 	Flame *flame;
 	
 	flame = (Flame*) malloc(sizeof(Flame));
@@ -322,39 +292,20 @@ static int bomb_add_flame(Bomb *bomb, int kill_owner, int n_up, int n_down, int 
 	
 	// max(0, ...) prevents a certain "bug" when n_up=...=n_right=-1; it happens when the
 	// bomb explodes on top of a BRICK - this normally shouldnt happen
-	flame->n_up    = max(0, n_up);
-	flame->n_down  = max(0, n_down);
-	flame->n_left  = max(0, n_left);
-	flame->n_right = max(0, n_right);
+	for (int d = 0; d < 4; d++)
+		flame->len[d] = len[d];
 	
 	flame->frame = 0;
 	
-	board[flame->row][flame->col].type = LEVEL_TILE_FLAME;
-	board[flame->row][flame->col].type_info = flame;
-	board[flame->row][flame->col].flame_type = FLAME_CENTER;
-	for (i = 1; i <= flame->n_up; i++)
-	{
-		board[flame->row + i][flame->col].type = LEVEL_TILE_FLAME;
-		board[flame->row + i][flame->col].type_info = flame;
-		board[flame->row + i][flame->col].flame_type = (i < bomb->flame_len ? FLAME_UP_MID : FLAME_UP_TIP);
-	}
-	for (i = 1; i <= flame->n_down; i++)
-	{
-		board[flame->row - i][flame->col].type = LEVEL_TILE_FLAME;
-		board[flame->row - i][flame->col].type_info = flame;
-		board[flame->row - i][flame->col].flame_type = (i < bomb->flame_len ? FLAME_DOWN_MID : FLAME_DOWN_TIP);
-	}
-	for (i = 1; i <= flame->n_left; i++)
-	{
-		board[flame->row][flame->col - i].type = LEVEL_TILE_FLAME;
-		board[flame->row][flame->col - i].type_info = flame;
-		board[flame->row][flame->col - i].flame_type = (i < bomb->flame_len ? FLAME_LEFT_MID : FLAME_LEFT_TIP);
-	}
-	for (i = 1; i <= flame->n_right; i++)
-	{
-		board[flame->row][flame->col + i].type = LEVEL_TILE_FLAME;
-		board[flame->row][flame->col + i].type_info = flame;
-		board[flame->row][flame->col + i].flame_type = (i < bomb->flame_len ? FLAME_RIGHT_MID : FLAME_RIGHT_TIP);
+	for (d = 0; d < 4; d++) {
+		for (i = 0; i <= flame->len[d]; i++) {
+			int row = flame->row + i * heading_y[d];
+			int col = flame->col + i * heading_x[d];
+			board[row][col].type = LEVEL_TILE_FLAME;
+			board[row][col].type_info = flame;
+			board[row][col].flame_type = i >= bomb->flame_len ? flame_tip[d] :
+			                             i > 0 ? flame_mid[d] : FLAME_CENTER;
+		}
 	}
 	
 	g_flames.push_back(flame);
