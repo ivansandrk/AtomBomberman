@@ -108,6 +108,9 @@ int level_draw_all()
 		}
 	}
 	
+	if (config.draw_grid)
+		draw_grid();
+	
 	return 0;
 }
 

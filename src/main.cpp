@@ -105,9 +105,6 @@ int draw_all()
 	drawing_begin();
 	
 	level_draw_all();
-	if (config.draw_grid)
-		draw_grid();
-	
 	bomber_draw_shadows();
 	bomb_draw_all();
 	bomber_draw_bombers();
