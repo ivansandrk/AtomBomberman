@@ -14,3 +14,6 @@ a
 a.cpp
 bak_config.ini
 SDL_Config 1.2/
+benchmark.ini
+generate_benchmark.py
+perf.data*

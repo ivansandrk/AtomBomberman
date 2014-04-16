@@ -141,8 +141,6 @@ all sounds loaded use ~35MB memory
 
 
 TODO:
-** remove UTLIST, use STL
-
 ** shortcut to mute sound & .ini settings regarding sound
 
 ** put global variables into a single .cpp file
@@ -175,12 +173,9 @@ TODO:
 
 ** ABSTRACTION ABSTRACTION ABSTRACTION ABSTRACTION!
 
-** push drawing events - currently draws tile then on top draws flame - not good
--- instead start drawing from top, mark tiles as already drawn to avoid redrawing
--- dirty rectangles?
-
 
 DONE:
+** remove UTLIST, use STL
 ** remove caption from config.ini, make it a #define
 ** separate config from renderers (remove it) -- fix hackity-hack-hack
 ** add keys to config for drawing grid and displaying FPS
@@ -194,6 +189,9 @@ DISCARDED:
 ** better error reporting for missing files
 -- make a macro that calls the function to load the ani so you get the DEFINE
    name aswell, ie. PATH_ANIM_PUNCH_NORTH
+** push drawing events - currently draws tile then on top draws flame - not good
+-- instead start drawing from top, mark tiles as already drawn to avoid redrawing
+-- dirty rectangles?
 
 
 g++ -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -lSDL_mixer src/bomb.cpp src/bomber.cpp src/config.cpp src/graphics.cpp src/input.cpp src/level.cpp src/main.cpp src/sdl_renderer.cpp src/opengl_renderer.cpp src/sound.cpp util/iniparser.cpp util/SDL_rwops_zzip.c
