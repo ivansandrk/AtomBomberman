@@ -14,16 +14,16 @@
 // level.h includes config.h itself
 #include "level.h"
 
+#include <queue>
+#include <utility>
+typedef std::pair<int, SDL_Event> Dog;
+std::queue<Dog> dogadjaji;
 
-int get_input()
+static inline void do_event(SDL_Event event)
 {
-	SDL_Event event;
-	int i;
 	static int mode_brick = 0;
 	
-	while (SDL_PollEvent(&event))
 	switch (event.type) {
-	
 	case SDL_QUIT: config.quit = 1; break;
 	
 	case SDL_KEYDOWN:
@@ -36,7 +36,7 @@ int get_input()
 		if (event.key.keysym.sym == config.key_show_fps)
 			config.show_fps ^= 1;
 		
-		for (i = 0; i < n_bombers; i++)
+		for (int i = 0; i < n_bombers; i++)
 		{
 			if      (event.key.keysym.sym == config.player_conf[i].key_action1)
 				bombers[i].action1 = 1;
@@ -65,7 +65,7 @@ int get_input()
 		break;
 	
 	case SDL_KEYUP:
-		for (i = 0; i < n_bombers; i++)
+		for (int i = 0; i < n_bombers; i++)
 		{
 			if      (event.key.keysym.sym == config.player_conf[i].key_action1)
 				bombers[i].action1 = 0;
@@ -126,27 +126,26 @@ int get_input()
 	default: break;
 	}
 	
-	
 	// TODO: add mouse input for a player?
 	
 	// TODO: fix input for AI players and network players
 	// probably need some flags (normal player, AI player, network player)
 	// AI players set the appropriate values in AI code
 	// network players set the appropriate values in network code
+}
+
+int get_input()
+{
+	SDL_Event event;
 	
+	while (SDL_PollEvent(&event))
+		dogadjaji.push(Dog(SDL_GetTicks(), event));
 	
-	// this code is moved up
-	
-	/*int numkeys;
-	Uint8* key;
-	key = SDL_GetKeyState(&numkeys);
-	for (i = 0; i < n_bombers; i++)
-	{
-		bombers[i].move_up    = key[config.player_conf[i].key_up];
-		bombers[i].move_down  = key[config.player_conf[i].key_down];
-		bombers[i].move_left  = key[config.player_conf[i].key_left];
-		bombers[i].move_right = key[config.player_conf[i].key_right];
-	}//*/
+	int time = SDL_GetTicks();
+	while (!dogadjaji.empty() && time - dogadjaji.front().first > 1) {
+		event = dogadjaji.front().second; dogadjaji.pop();
+		do_event(event);
+	}
 	
 	return 0;
 }
