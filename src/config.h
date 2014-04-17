@@ -122,7 +122,6 @@ typedef struct _PLAYER_CONF {
 typedef struct _CONFIG {
 	int quit;
 	int graphics_renderer;
-	int used_graphics_renderer;
 	int width;
 	int height;
 	int bits_per_pixel;

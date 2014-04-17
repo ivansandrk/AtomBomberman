@@ -39,12 +39,10 @@ int graphics_init()
 	case OPENGL_RENDERER:
 	case AUTO_RENDERER:
 		result = opengl_renderer_init(config.width, config.height, config.bits_per_pixel, WINDOW_CAPTION);
-		config.used_graphics_renderer = OPENGL_RENDERER;
 		
 		if (result == -1)
 		{
 			fprintf(stderr, "Unable to use OpenGL renderer.\n");
-			config.used_graphics_renderer = NONE_RENDERER;
 			if (config.graphics_renderer == AUTO_RENDERER)
 			{
 				fprintf(stderr, "Trying fallback renderer instead - SDL renderer.\n");
@@ -53,17 +51,18 @@ int graphics_init()
 		
 		if (result == 0 || config.graphics_renderer == OPENGL_RENDERER)
 		{
+			config.graphics_renderer = OPENGL_RENDERER;
 			break;
 		}
 	
 	case SDL_RENDERER:
 		result = sdl_renderer_init(config.width, config.height, config.bits_per_pixel, WINDOW_CAPTION, FONT_PATH);
-		config.used_graphics_renderer = SDL_RENDERER;
+		config.graphics_renderer = SDL_RENDERER;
 		
 		if (result == -1)
 		{
 			fprintf(stderr, "Unable to use SDL renderer.\n");
-			config.used_graphics_renderer = NONE_RENDERER;
+			config.graphics_renderer = NONE_RENDERER;
 		}
 		
 		break;
@@ -85,17 +84,17 @@ int graphics_quit()
 {
 	int i;
 	
-	if (config.used_graphics_renderer == OPENGL_RENDERER)
+	if (config.graphics_renderer == OPENGL_RENDERER)
 	{
 		opengl_renderer_quit();
 	}
-	else if (config.used_graphics_renderer == SDL_RENDERER)
+	else if (config.graphics_renderer == SDL_RENDERER)
 	{
 		sdl_renderer_quit();
 	}
-	else if (config.used_graphics_renderer == NONE_RENDERER)
+	else if (config.graphics_renderer == NONE_RENDERER)
 	{
-		fprintf(stderr, "Trying to graphics_quit() with used_graphics_renderer = NONE_RENDERER.\n");
+		fprintf(stderr, "Trying to graphics_quit() with graphics_renderer = NONE_RENDERER.\n");
 	}
 	
 	free_palettes();
@@ -417,7 +416,7 @@ int print(int x, int y, char *str)
 /** *************************************** hackity-hack-hack *****************************/
 int draw_square(int x, int y, int size, int color)
 {
-	if (config.used_graphics_renderer != SDL_RENDERER)
+	if (config.graphics_renderer != SDL_RENDERER)
 		return -1;
 	
 	return sdl_renderer_draw_square(x+LOWER_LEFT_CORNER_X, y+LOWER_LEFT_CORNER_Y, size, color);
@@ -425,7 +424,7 @@ int draw_square(int x, int y, int size, int color)
 
 int draw_vline(int x, int y0, int y1, int color)
 {
-	if (config.used_graphics_renderer != SDL_RENDERER)
+	if (config.graphics_renderer != SDL_RENDERER)
 		return -1;
 	
 	return sdl_renderer_draw_vline(x+LOWER_LEFT_CORNER_X,
@@ -434,7 +433,7 @@ int draw_vline(int x, int y0, int y1, int color)
 
 int draw_hline(int x0, int x1, int y, int color)
 {
-	if (config.used_graphics_renderer != SDL_RENDERER)
+	if (config.graphics_renderer != SDL_RENDERER)
 		return -1;
 	
 	return sdl_renderer_draw_hline(x0+LOWER_LEFT_CORNER_X,
