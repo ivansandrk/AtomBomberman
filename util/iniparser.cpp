@@ -24,9 +24,24 @@ FileIO::FileIO(const char* path)
 	m_read = 0;
 	m_pos  = 0;
 	m_done = 0;
+	m_file_buf = NULL;
 }
 
 FileIO::~FileIO()
+{
+}
+
+int FileIO::init_reading()
+{
+	m_file = fopen(m_path, "r");
+	if (!m_file) {
+		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		return -1;
+	}
+	return 0;
+}
+
+void FileIO::finish_reading()
 {
 	if (m_file) {
 		fclose(m_file);
@@ -34,11 +49,69 @@ FileIO::~FileIO()
 	}
 }
 
-int FileIO::init()
+int FileIO::init_writing()
 {
 	m_file = fopen(m_path, "r");
 	if (!m_file) {
 		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		return -1;
+	}
+	
+	fseek(m_file, 0, SEEK_END);
+	m_file_len = ftell(m_file);
+	fseek(m_file, 0, SEEK_SET);
+	
+	m_file_buf = (char*)malloc(m_file_len);
+	if (!m_file_buf) {
+		m_error = "Unable to malloc memory for file " + id() + "\n";
+		return -1;
+	}
+	
+	fread(m_file_buf, m_file_len, 1, m_file);
+	fclose(m_file);
+	
+	m_file = fopen(m_path, "w");
+	if (!m_file) {
+		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		return -1;
+	}
+	
+	m_pos = 0;
+	
+	return 0;
+}
+
+void FileIO::finish_writing()
+{
+	if (m_file) {
+		fclose(m_file);
+		m_file = NULL;
+	}
+	
+	if (m_file_buf) {
+		free(m_file_buf);
+		m_file_buf = NULL;
+	}
+}
+
+int FileIO::write(int pos)
+{
+	int to_write = std::min(pos, m_file_len) - m_pos;
+	
+	fwrite(&m_file_buf[m_pos], to_write, 1, m_file);
+	m_pos += to_write;
+	
+	if (m_pos == m_file_len) {
+		return -1;
+	}
+	return 0;
+}
+
+int FileIO::skip(int pos)
+{
+	m_pos = std::min(pos, m_file_len);
+	
+	if (m_pos == m_file_len) {
 		return -1;
 	}
 	return 0;
@@ -137,6 +210,7 @@ IniParser::IniParser(FileIO* io)
 
 IniParser::~IniParser()
 {
+	delete m_io;
 }
 
 ParsedLine& IniParser::parse_line()
@@ -216,6 +290,11 @@ int IniParser::parse_ini()
 	GroupInfo *group_info = NULL;
 	EntryInfo *entry_info = NULL;
 	
+	if (m_io->init_reading() == -1) {
+		m_error = m_io->get_error();
+		return -1;
+	}
+	
 	for (ParsedLine& l = parse_line(); l.type != END_OF_INI; parse_line()) {
 		switch (l.type) {
 		case ERROR: {
@@ -251,17 +330,14 @@ int IniParser::parse_ini()
 		n_line++;
 	}
 	
+	m_io->finish_reading();
+	
 	return 0;
 }
 
 std::string IniParser::get_error()
 {
 	return m_error;
-}
-
-FileIO* IniParser::get_io()
-{
-	return m_io;
 }
 
 const char* IniParser::get_string(const char* group, const char* key, const char* def)
@@ -296,6 +372,49 @@ float IniParser::get_float(const char* group, const char* key, float def)
 	return strtof(str, 0);
 }
 
+int IniParser::set_string(const char* group, const char* key, const char* val)
+{
+	// val == NULL -> remove key/val ?
+	// is key in group ?
+	
+	if (!group || !key) {
+		m_error = "set_string called with " + std::string(!group ? "group" : "key") + "=NULL\n";
+		return -1;
+	}
+	
+	GroupInfoMap::iterator g = m_groups.find(group);
+	if (g == m_groups.end()) {
+		m_error = "Group [" + std::string(group) + "] doesn't exist\n";
+		return -1;
+	}
+	
+	EntryInfoMap::iterator e = g->second.entries.find(key);
+	if (e == g->second.entries.end()) {
+		// TODO: add key/val
+	}
+	
+	//return e->second.val.str.c_str();
+	
+	e->second.val.str = val;
+	m_dirty.insert(&e->second);
+	
+	return 0;
+}
+
+int IniParser::write_ini()
+{
+	if (m_io->init_writing() == -1) {
+		m_error = m_io->get_error();
+		return -1;
+	}
+	
+	for (DirtySet::iterator it = m_dirty.begin(); it != m_dirty.end(); it++) {
+		TokenInfo info = (*it)->val;
+		printf("[%s] (%d-%d)\n", info.str.c_str(), info.pos, info.end);
+	}
+	return 0;
+}
+
 #ifdef USE_SDL_ZZIP
 RWIO::RWIO(const char* path)
   : FileIO(path)
@@ -305,13 +424,9 @@ RWIO::RWIO(const char* path)
 
 RWIO::~RWIO()
 {
-	if (m_data) {
-		SDL_RWclose(m_data);
-		m_data = NULL;
-	}
 }
 
-int RWIO::init()
+int RWIO::init_reading()
 {
 	m_data = SDL_RWFromZZIP(m_path, "r");
 	if (!m_data) {
@@ -319,6 +434,14 @@ int RWIO::init()
 		return -1;
 	}
 	return 0;
+}
+
+void RWIO::finish_reading()
+{
+	if (m_data) {
+		SDL_RWclose(m_data);
+		m_data = NULL;
+	}
 }
 
 int RWIO::getc()
@@ -345,45 +468,12 @@ int RWIO::pos()
 {
 	return SDL_RWtell(m_data);
 }
-
-
-FileIO* OpenRW(const char* path)
-{
-	RWIO *io;
-	
-	io = new RWIO(path);
-	if (io->init() == -1) {
-		fputs(io->get_error().c_str(), stderr);
-		delete io;
-		return NULL;
-	}
-	
-	return io;
-}
 #endif
 
-FileIO* OpenFile(const char* path)
+IniParser* ParseFILE(const char* path)
 {
-	FileIO *io;
+	IniParser *parser = new IniParser(new FileIO(path));
 	
-	io = new FileIO(path);
-	if (io->init() == -1) {
-		fputs(io->get_error().c_str(), stderr);
-		delete io;
-		return NULL;
-	}
-	
-	return io;
-}
-
-IniParser* ParseFile(FileIO* io)
-{
-	IniParser *parser;
-	
-	if (!io)
-		return NULL;
-	
-	parser = new IniParser(io);
 	if (parser->parse_ini() == -1) {
 		fputs(parser->get_error().c_str(), stderr);
 		delete parser;
@@ -392,3 +482,18 @@ IniParser* ParseFile(FileIO* io)
 	
 	return parser;
 }
+
+#ifdef USE_SDL_ZZIP
+IniParser* ParseZZIP(const char* path)
+{
+	IniParser *parser = new IniParser(new RWIO(path));
+	
+	if (parser->parse_ini() == -1) {
+		fputs(parser->get_error().c_str(), stderr);
+		delete parser;
+		return NULL;
+	}
+	
+	return parser;
+}
+#endif
