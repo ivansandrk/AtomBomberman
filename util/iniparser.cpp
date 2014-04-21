@@ -7,6 +7,7 @@
 #include <string>
 #include <ctype.h>
 #include <sstream>
+#include <algorithm>
 
 
 
@@ -29,13 +30,15 @@ FileIO::FileIO(const char* path)
 
 FileIO::~FileIO()
 {
+	finish_reading();
+	finish_writing();
 }
 
 int FileIO::init_reading()
 {
 	m_file = fopen(m_path, "r");
 	if (!m_file) {
-		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		m_error = "Unable to open " + id() + ": " + strerror(errno);
 		return -1;
 	}
 	return 0;
@@ -53,7 +56,7 @@ int FileIO::init_writing()
 {
 	m_file = fopen(m_path, "r");
 	if (!m_file) {
-		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		m_error = "Unable to open " + id() + ": " + strerror(errno);
 		return -1;
 	}
 	
@@ -63,7 +66,7 @@ int FileIO::init_writing()
 	
 	m_file_buf = (char*)malloc(m_file_len);
 	if (!m_file_buf) {
-		m_error = "Unable to malloc memory for file " + id() + "\n";
+		m_error = "Unable to malloc memory for file " + id();
 		return -1;
 	}
 	
@@ -72,7 +75,7 @@ int FileIO::init_writing()
 	
 	m_file = fopen(m_path, "w");
 	if (!m_file) {
-		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		m_error = "Unable to open " + id() + ": " + strerror(errno);
 		return -1;
 	}
 	
@@ -97,6 +100,9 @@ void FileIO::finish_writing()
 int FileIO::write(int pos)
 {
 	int to_write = std::min(pos, m_file_len) - m_pos;
+	if (pos == -1) {
+		to_write = m_file_len - m_pos;
+	}
 	
 	fwrite(&m_file_buf[m_pos], to_write, 1, m_file);
 	m_pos += to_write;
@@ -107,14 +113,21 @@ int FileIO::write(int pos)
 	return 0;
 }
 
-int FileIO::skip(int pos)
+int FileIO::skip(int n)
 {
-	m_pos = std::min(pos, m_file_len);
+	m_pos += n;
+	//m_pos = std::min(pos, m_file_len);
+	m_pos = std::min(m_pos, m_file_len);
 	
 	if (m_pos == m_file_len) {
 		return -1;
 	}
 	return 0;
+}
+
+void FileIO::write_str(std::string str)
+{
+	fwrite(str.c_str(), str.length(), 1, m_file);
 }
 
 std::string FileIO::id()
@@ -181,7 +194,7 @@ static int isval(char c)
 std::string FileIO::read_name()
 {
 	int c, pos=0;
-	char buf[2048];
+	char buf[128];
 	
 	while (c = getc(), isname(c) && pos < (int)sizeof(buf))
 		buf[pos++] = c;
@@ -194,7 +207,7 @@ std::string FileIO::read_name()
 std::string FileIO::read_val()
 {
 	int c, pos=0;
-	char buf[2048];
+	char buf[65536];
 	
 	while (c = getc(), isval(c) && pos < (int)sizeof(buf))
 		buf[pos++] = c;
@@ -240,7 +253,7 @@ ParsedLine& IniParser::parse_line()
 		m_io->skip_space();
 		parsed_line.group.pos = m_io->pos();
 		parsed_line.group.str = m_io->read_name();
-		parsed_line.group.end = m_io->pos();
+		parsed_line.group.orig_len = parsed_line.group.str.length();
 		m_io->skip_space();
 		if (m_io->getc() != kGroupEnd) {
 			parsed_line.error = std::string("expected '")+kGroupEnd+"'";
@@ -260,7 +273,7 @@ ParsedLine& IniParser::parse_line()
 		// read key
 		parsed_line.key.pos = m_io->pos();
 		parsed_line.key.str = m_io->read_name();
-		parsed_line.key.end = m_io->pos();
+		parsed_line.key.orig_len = parsed_line.key.str.length();
 		m_io->skip_space();
 		if (m_io->getc() != kKeyValDelim) {
 			parsed_line.error = std::string("expected '")+kKeyValDelim+"'";
@@ -272,7 +285,7 @@ ParsedLine& IniParser::parse_line()
 		m_io->skip_space();
 		parsed_line.val.pos = m_io->pos();
 		parsed_line.val.str = m_io->read_val();
-		parsed_line.val.end = m_io->pos();
+		parsed_line.val.orig_len = parsed_line.val.str.length();
 		m_io->skip_line();
 		
 		return parsed_line;
@@ -300,7 +313,7 @@ int IniParser::parse_ini()
 		case ERROR: {
 			std::stringstream ss;
 			ss << "Error parsing " << m_io->id() << " at line " << n_line+1
-			   << ", pos " << m_io->pos()-last_pos << " (" << l.error << ")\n";
+			   << ", pos " << m_io->pos()-last_pos << " (" << l.error << ")";
 			m_error = ss.str();
 			return -1;
 		}
@@ -330,6 +343,7 @@ int IniParser::parse_ini()
 		n_line++;
 	}
 	
+	last_pos_in_file = m_io->pos();
 	m_io->finish_reading();
 	
 	return 0;
@@ -375,25 +389,24 @@ float IniParser::get_float(const char* group, const char* key, float def)
 int IniParser::set_string(const char* group, const char* key, const char* val)
 {
 	// val == NULL -> remove key/val ?
-	// is key in group ?
 	
 	if (!group || !key) {
-		m_error = "set_string called with " + std::string(!group ? "group" : "key") + "=NULL\n";
+		m_error = "set_string called with " + std::string(!group ? "group" : "key") + "=NULL";
 		return -1;
 	}
 	
 	GroupInfoMap::iterator g = m_groups.find(group);
 	if (g == m_groups.end()) {
-		m_error = "Group [" + std::string(group) + "] doesn't exist\n";
+		m_error = "Group [" + std::string(group) + "] doesn't exist";
 		return -1;
 	}
 	
 	EntryInfoMap::iterator e = g->second.entries.find(key);
 	if (e == g->second.entries.end()) {
 		// TODO: add key/val
+		m_error = "Key [" + std::string(key) + "] doesn't exist. TODO: Implement adding keys!";
+		return -1;
 	}
-	
-	//return e->second.val.str.c_str();
 	
 	e->second.val.str = val;
 	m_dirty.insert(&e->second);
@@ -401,17 +414,96 @@ int IniParser::set_string(const char* group, const char* key, const char* val)
 	return 0;
 }
 
+// helper function that dumps all map values into vector and sorts them
+template<typename M, typename V>
+static void map_to_vec(const M& m, V& v)
+{
+	for (typename M::const_iterator it = m.begin(); it != m.end(); it++) {
+		v.push_back(it->second);
+	}
+	std::sort(v.begin(), v.end());
+}
+
+void IniParser::print_ini()
+{
+	std::vector<GroupInfo> v_groups;
+	map_to_vec(m_groups, v_groups);
+	
+	for (auto& g : v_groups) {
+		TokenInfo info = g.group;
+		printf("[%s] %d+%lu\n", info.str.c_str(), info.pos, info.str.length());
+		
+		//v_entries.clear();
+		std::vector<EntryInfo> v_entries;
+		map_to_vec(g.entries, v_entries);
+		
+		for (auto& e : v_entries) {
+			auto info = e;
+			//printf("---- %s=%s [%d]\n", info.key.str.c_str(), info.val.str.c_str(), info.key.pos);
+			printf("---- %s=%s [%d,%d] [%d,%d]\n", info.key.str.c_str(), info.val.str.c_str(),
+			       info.key.pos, info.key.orig_len,
+			       info.val.pos, info.val.orig_len);
+		}
+	}
+}
+
 int IniParser::write_ini()
 {
+	int offset = 0;
+	
+	std::vector<TokenInfo*> v_tokens;
+	for (auto& g : m_groups) {
+		v_tokens.push_back(&g.second.group);
+		for (auto& e : g.second.entries) {
+			v_tokens.push_back(&e.second.key);
+			v_tokens.push_back(&e.second.val);
+		}
+	}
+	std::sort(v_tokens.begin(), v_tokens.end());
+	int i = 0;
+	
 	if (m_io->init_writing() == -1) {
 		m_error = m_io->get_error();
 		return -1;
 	}
 	
-	for (DirtySet::iterator it = m_dirty.begin(); it != m_dirty.end(); it++) {
-		TokenInfo info = (*it)->val;
-		printf("[%s] (%d-%d)\n", info.str.c_str(), info.pos, info.end);
+	for (auto entry : m_dirty) {
+		TokenInfo key = entry->key;
+		TokenInfo val = entry->val;
+		//printf("[%s] (%d+%lu)\n", val.str.c_str(), val.pos, val.str.length());
+		
+		// fix offsets from last point up until current val (modified thingie)
+		while (i < v_tokens.size() && v_tokens[i]->pos <= val.pos) {
+			v_tokens[i]->pos += offset;
+			i++;
+		}
+		
+		// write unchanged bits from the original file up to current key/val
+		m_io->write(val.pos);
+		
+		// write val
+		m_io->write_str(val.str);
+		
+		// skip len(val) bytes from original file
+		m_io->skip(val.orig_len);
+		
+		// change offset
+		offset += val.str.length() - val.orig_len;
+		
+		// update orig_len
+		val.orig_len = val.str.length();
 	}
+	
+	// fix all remaining offsets
+	while (i < v_tokens.size()) {
+		v_tokens[i]->pos += offset;
+		i++;
+	}
+	
+	// write out any remaining bits from original file
+	m_io->write(-1);
+	m_io->finish_writing();
+	
 	return 0;
 }
 
@@ -424,13 +516,14 @@ RWIO::RWIO(const char* path)
 
 RWIO::~RWIO()
 {
+	finish_reading();
 }
 
 int RWIO::init_reading()
 {
 	m_data = SDL_RWFromZZIP(m_path, "r");
 	if (!m_data) {
-		m_error = "Unable to open " + id() + ": " + strerror(errno) + "\n";
+		m_error = "Unable to open " + id() + ": " + strerror(errno);
 		return -1;
 	}
 	return 0;

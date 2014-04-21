@@ -5,13 +5,18 @@
 
 /* ************ IMPORTANT NOTES, USAGE, RESTRICTIONS, ETC. ************
  *
- * - max length of group or key is 2048 chars
- * - max length of val is 2048 chars -- is this enough?
+ * - max length of group or key is 128 chars
+ * - max length of val is 65536 chars -- if you need more, change the value
  * - key/val pair without a group isn't allowed; it is silently ignored when reading
  * - set_string on an existing key/val changes the val
  * - **** if key/val doesn't exist, it adds it as first in the group
  * - **** if group doesn't exist, it fails
  * - save_ini reads the whole file into memory; memory may be an issue
+ * - max ini file size is 2^31-1 (int) ~~ 2GB
+ * - skip_line handles only linux newlines (\n) - fix this? TODO
+ * - renaming keys isn't allowed; only adding or deleting
+ *
+ * PROBLEM: when something new gets saved, all following indexes are invalid
  */
 
 // TODO: this define needs to be removed
@@ -19,7 +24,7 @@
 
 
 // a separate class for reading/writing to ease extensibility
-// if you want to use some other source to read from (ie. SDL_RWops)
+// if you want to use some other source to read from (eg. SDL_RWops)
 // just inherit this class and write virtual methods
 
 class FileIO {
@@ -40,9 +45,11 @@ class FileIO {
 	// only available for FILE; no ZZIP support
 	int init_writing();
 	void finish_writing();
-	// write/skip up to 'pos'
+	// write up to pos
 	int write(int pos);
-	int skip(int pos);
+	// skip n bytes
+	int skip(int n);
+	void write_str(std::string str);
 	// ----------------------------------------
 	
 	std::string get_error();
@@ -99,9 +106,15 @@ enum LineType {
 struct TokenInfo {
 	std::string str;
 	int pos;
-	int end;
+	int orig_len;
 	
 	TokenInfo() {}
+	
+	bool operator<(const TokenInfo& o) const {
+		if (pos != o.pos)
+			return pos < o.pos;
+		return str < o.str;
+	}
 };
 
 struct ParsedLine {
@@ -122,25 +135,37 @@ struct ParsedLine {
 struct EntryInfo {
 	TokenInfo key;
 	TokenInfo val;
+	
+	bool operator <(const EntryInfo& o) const {
+		if (key.pos != o.key.pos)
+			return key.pos < o.key.pos;
+		return key.str < o.key.str;
+	}
 };
 typedef std::map<std::string, EntryInfo> EntryInfoMap;
 
-// sort the DirtySet by ascending pos
+
 struct DirtySetCmp {
 	bool operator() (const EntryInfo* A, const EntryInfo* B) const
 	{
-//#define CMP(x, y) do {if ((x) != (y)) return (x) < (y);} while(0)
 		if (A->key.pos != B->key.pos)
 			return A->key.pos < B->key.pos;
-		return A->key.end < B->key.end;
+		return A->key.str < B->key.str;
 	}
 };
 typedef std::set<EntryInfo*, DirtySetCmp> DirtySet;
+
 
 struct GroupInfo {
 	TokenInfo group;
 	int first_line_pos;
 	EntryInfoMap entries;
+	
+	bool operator <(const GroupInfo& o) const {
+		if (group.pos != o.group.pos)
+			return group.pos < o.group.pos;
+		return group.str < o.group.str;
+	}
 };
 typedef std::map<std::string, GroupInfo> GroupInfoMap;
 
@@ -160,12 +185,16 @@ class IniParser {
 	
 	int set_string(const char* group, const char* key, const char* val);
 	
+	// used for debugging purposes
+	void print_ini();
+	
   private:
 	ParsedLine& parse_line();
   	
 	FileIO* m_io;
 	GroupInfoMap m_groups;
 	DirtySet m_dirty;
+	int last_pos_in_file;
 	
 	std::string m_error;
 };
