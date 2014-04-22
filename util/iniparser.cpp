@@ -404,8 +404,33 @@ int IniParser::set_string(const char* group, const char* key, const char* val)
 	EntryInfoMap::iterator e = g->second.entries.find(key);
 	if (e == g->second.entries.end()) {
 		// TODO: add key/val
-		m_error = "Key [" + std::string(key) + "] doesn't exist. TODO: Implement adding keys!";
-		return -1;
+		//m_error = "Key [" + std::string(key) + "] doesn't exist. TODO: Implement adding keys!";
+		//return -1;
+		
+		// case GROUP:
+		// 	// constructor activated on accessing key
+		// 	group_info = &m_groups[l.group.str];
+		// 	group_info->first_line_pos = m_io->pos();
+		// 	group_info->group = l.group;
+		// 	break;
+		
+		// case KEY_VAL:
+		// 	// key/val pair without a group isn't allowed
+		// 	if (!group_info)
+		// 		break;
+		// 	entry_info = &group_info->entries[l.key.str];
+		// 	entry_info->key = l.key;
+		// 	entry_info->val = l.val;
+		// 	break;
+		//GroupInfo *group_info = NULL;
+		EntryInfo& entry_info = g->second.entries[std::string(key)];
+		entry_info.key.str = key;
+		entry_info.val.str = val;
+		entry_info.key.orig_len = entry_info.val.orig_len = 0;
+		entry_info.key.pos = entry_info.val.pos = g->second.first_line_pos;
+		m_dirty.insert(&entry_info);
+		
+		return 0;
 	}
 	
 	e->second.val.str = val;
@@ -449,18 +474,24 @@ void IniParser::print_ini()
 
 int IniParser::write_ini()
 {
-	int offset = 0;
+	int offset = 0, i = 0, i_g = 0, i_e = 0;
 	
 	std::vector<TokenInfo*> v_tokens;
+	std::vector<TokenInfo*> v_groups;
+	std::vector<EntryInfo*> v_entries;
 	for (auto& g : m_groups) {
 		v_tokens.push_back(&g.second.group);
+		v_groups.push_back(&g.second.group);
 		for (auto& e : g.second.entries) {
+			v_entries.push_back(&e.second);
 			v_tokens.push_back(&e.second.key);
 			v_tokens.push_back(&e.second.val);
 		}
 	}
-	std::sort(v_tokens.begin(), v_tokens.end());
-	int i = 0;
+	std::stable_sort(v_tokens.begin(), v_tokens.end(), TokenInfoCmp());
+	std::sort(v_groups.begin(), v_groups.end(), TokenInfoCmp());
+	std::sort(v_entries.begin(), v_entries.end(), EntryInfoCmp());
+	
 	
 	if (m_io->init_writing() == -1) {
 		m_error = m_io->get_error();
@@ -468,18 +499,55 @@ int IniParser::write_ini()
 	}
 	
 	for (auto entry : m_dirty) {
-		TokenInfo key = entry->key;
-		TokenInfo val = entry->val;
+		const TokenInfo& key = entry->key;
+		const TokenInfo& val = entry->val;
 		//printf("[%s] (%d+%lu)\n", val.str.c_str(), val.pos, val.str.length());
-		
-		// fix offsets from last point up until current val (modified thingie)
-		while (i < v_tokens.size() && v_tokens[i]->pos <= val.pos) {
-			v_tokens[i]->pos += offset;
-			i++;
-		}
 		
 		// write unchanged bits from the original file up to current key/val
 		m_io->write(val.pos);
+		
+		// fix offsets from last point up until current val (modified thingie)
+		while (i_g < v_groups.size() && v_groups[i_g]->pos <= val.pos) {
+			v_groups[i_g]->pos += offset;
+			i_g++;
+		}
+		while (i_e < v_entries.size() && v_entries[i_e]->val.pos <= val.pos) {
+			fprintf(stderr, "fix [%s,%s] by %d before [%s, %s]\n", v_entries[i_e]->key.str.c_str(), v_entries[i_e]->val.str.c_str(), offset, key.str.c_str(), val.str.c_str());
+			v_entries[i_e]->key.pos += offset;
+			v_entries[i_e]->val.pos += offset;
+			i_e++;
+			if (v_entries[i_e-1]->val.pos == val.pos) {
+				break;
+			}
+		}
+		// while (i < v_tokens.size() && v_tokens[i]->pos <= val.pos) {
+		// 	v_tokens[i]->pos += offset;
+		// 	i++;
+		// }
+		
+		// adding a new key/val pair
+		if (key.orig_len == 0) {
+			// write key=val\n
+			m_io->write_str(key.str);
+			m_io->write_str(std::string("="));
+			m_io->write_str(val.str);
+			m_io->write_str(std::string("\n"));
+			
+			// change offset
+			offset += val.str.length() + key.str.length() + 2;
+			
+			// update val pos (add "key=" length to it)
+			const_cast<TokenInfo&>(val).pos += key.str.length() + 1;
+			
+			// update orig_len
+			const_cast<TokenInfo&>(key).orig_len = key.str.length();
+			const_cast<TokenInfo&>(val).orig_len = val.str.length();
+			
+			continue;
+		}
+		
+		// write unchanged bits from the original file up to current key/val
+		//m_io->write(val.pos);
 		
 		// write val
 		m_io->write_str(val.str);
@@ -491,14 +559,24 @@ int IniParser::write_ini()
 		offset += val.str.length() - val.orig_len;
 		
 		// update orig_len
-		val.orig_len = val.str.length();
+		const_cast<TokenInfo&>(val).orig_len = val.str.length();
 	}
 	
 	// fix all remaining offsets
-	while (i < v_tokens.size()) {
-		v_tokens[i]->pos += offset;
-		i++;
+	while (i_g < v_groups.size()) {
+		v_groups[i_g]->pos += offset;
+		i_g++;
 	}
+	while (i_e < v_entries.size()) {
+		fprintf(stderr, "fix [%s,%s] by %d last\n", v_entries[i_e]->key.str.c_str(), v_entries[i_e]->val.str.c_str(), offset);
+		v_entries[i_e]->key.pos += offset;
+		v_entries[i_e]->val.pos += offset;
+		i_e++;
+	}
+	// while (i < v_tokens.size()) {
+	// 	v_tokens[i]->pos += offset;
+	// 	i++;
+	// }
 	
 	// write out any remaining bits from original file
 	m_io->write(-1);

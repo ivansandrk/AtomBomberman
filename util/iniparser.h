@@ -13,10 +13,12 @@
  * - **** if group doesn't exist, it fails
  * - save_ini reads the whole file into memory; memory may be an issue
  * - max ini file size is 2^31-1 (int) ~~ 2GB
- * - skip_line handles only linux newlines (\n) - fix this? TODO
  * - renaming keys isn't allowed; only adding or deleting
  *
- * PROBLEM: when something new gets saved, all following indexes are invalid
+ * PROBLEMS:
+ * when something new gets saved, all following indexes are invalid
+ * skip_line, isval, parse_line case '\n'
+ * -> handles only linux newlines - fix this? TODO
  */
 
 // TODO: this define needs to be removed
@@ -29,7 +31,7 @@
 
 class FileIO {
   public:
-  	// **** methods to override ****
+	// **** methods to override ****
 	explicit FileIO(const char* path);
 	virtual ~FileIO();
 	virtual int init_reading();
@@ -61,18 +63,18 @@ class FileIO {
 	std::string read_val();
 	
   protected:
-  	const char* m_path;
+	const char* m_path;
 	FILE* m_file;
 	
 	std::string m_error;
 	
-  	char m_buf[4096];
-  	int m_read;
-  	int m_pos;
-  	int m_done;
-  	
-  	char* m_file_buf;
-  	int m_file_len;
+	char m_buf[4096];
+	int m_read;
+	int m_pos;
+	int m_done;
+	
+	char* m_file_buf;
+	int m_file_len;
 };
 
 #ifdef USE_SDL_ZZIP
@@ -110,10 +112,19 @@ struct TokenInfo {
 	
 	TokenInfo() {}
 	
+  private:
 	bool operator<(const TokenInfo& o) const {
 		if (pos != o.pos)
 			return pos < o.pos;
 		return str < o.str;
+	}
+};
+struct TokenInfoCmp {
+	bool operator() (const TokenInfo* A, const TokenInfo* B) const
+	{
+		//if (A->pos != B->pos)
+			return A->pos < B->pos;
+		//return A->str < B->str;
 	}
 };
 
@@ -128,8 +139,8 @@ struct ParsedLine {
 	
 	ParsedLine() {}
   private:
-  	ParsedLine(const ParsedLine&);
-  	void operator=(const ParsedLine&);
+	ParsedLine(const ParsedLine&);
+	void operator=(const ParsedLine&);
 };
 
 struct EntryInfo {
@@ -137,15 +148,15 @@ struct EntryInfo {
 	TokenInfo val;
 	
 	bool operator <(const EntryInfo& o) const {
-		if (key.pos != o.key.pos)
+		//if (key.pos != o.key.pos)
 			return key.pos < o.key.pos;
-		return key.str < o.key.str;
+		//return key.str < o.key.str;
 	}
 };
 typedef std::map<std::string, EntryInfo> EntryInfoMap;
 
 
-struct DirtySetCmp {
+struct EntryInfoCmp {
 	bool operator() (const EntryInfo* A, const EntryInfo* B) const
 	{
 		if (A->key.pos != B->key.pos)
@@ -153,7 +164,7 @@ struct DirtySetCmp {
 		return A->key.str < B->key.str;
 	}
 };
-typedef std::set<EntryInfo*, DirtySetCmp> DirtySet;
+typedef std::set<EntryInfo*, EntryInfoCmp> DirtySet;
 
 
 struct GroupInfo {
@@ -190,7 +201,7 @@ class IniParser {
 	
   private:
 	ParsedLine& parse_line();
-  	
+	
 	FileIO* m_io;
 	GroupInfoMap m_groups;
 	DirtySet m_dirty;
