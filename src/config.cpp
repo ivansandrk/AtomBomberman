@@ -35,8 +35,8 @@ int config_init()
 	char buf[1024];
 	
 	
-	ini       = ParseFile(OpenFile(CONFIG_FILE));
-	constants = ParseFile(OpenRW(CONSTANTS_FILE));
+	ini       = ParseFILE(CONFIG_FILE);
+	constants = ParseZZIP(CONSTANTS_FILE);
 	
 	if (ini == NULL || constants == NULL)
 		return -1;
@@ -87,8 +87,6 @@ int config_init()
 
 int config_quit()
 {
-	delete ini->get_io();
-	delete constants->get_io();
 	delete ini;
 	delete constants;
 	
