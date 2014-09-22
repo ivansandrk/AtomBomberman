@@ -468,13 +468,11 @@ void IniParser::print_ini()
 		TokenInfo info = g.group;
 		printf("[%s] %d+%lu\n", info.str.c_str(), info.pos, info.str.length());
 		
-		//v_entries.clear();
 		std::vector<EntryInfo> v_entries;
 		map_to_vec(g.entries, v_entries);
 		
 		for (auto& e : v_entries) {
 			auto info = e;
-			//printf("---- %s=%s [%d]\n", info.key.str.c_str(), info.val.str.c_str(), info.key.pos);
 			printf("---- %s=%s [%d,%d] [%d,%d]\n", info.key.str.c_str(), info.val.str.c_str(),
 			       info.key.pos, info.key.orig_len,
 			       info.val.pos, info.val.orig_len);
@@ -487,19 +485,14 @@ int IniParser::write_ini()
 	int offset = 0;
 	unsigned i_g = 0, i_e = 0;
 	
-	std::vector<TokenInfo*> v_tokens;
 	std::vector<TokenInfo*> v_groups;
 	std::vector<EntryInfo*> v_entries;
 	for (auto& g : m_groups) {
-		v_tokens.push_back(&g.second.group);
 		v_groups.push_back(&g.second.group);
 		for (auto& e : g.second.entries) {
 			v_entries.push_back(&e.second);
-			v_tokens.push_back(&e.second.key);
-			v_tokens.push_back(&e.second.val);
 		}
 	}
-	std::stable_sort(v_tokens.begin(), v_tokens.end(), TokenInfoCmp());
 	std::sort(v_groups.begin(), v_groups.end(), TokenInfoCmp());
 	std::sort(v_entries.begin(), v_entries.end(), EntryInfoCmp());
 	
@@ -512,7 +505,6 @@ int IniParser::write_ini()
 	for (auto entry : m_dirty) {
 		const TokenInfo& key = entry->key;
 		const TokenInfo& val = entry->val;
-		//printf("[%s] (%d+%lu)\n", val.str.c_str(), val.pos, val.str.length());
 		
 		// write unchanged bits from the original file up to current key/val
 		m_io->write(val.pos);
@@ -531,10 +523,6 @@ int IniParser::write_ini()
 				break;
 			}
 		}
-		// while (i < v_tokens.size() && v_tokens[i]->pos <= val.pos) {
-		// 	v_tokens[i]->pos += offset;
-		// 	i++;
-		// }
 		
 		// adding a new key/val pair
 		if (key.orig_len == 0) {
@@ -556,9 +544,6 @@ int IniParser::write_ini()
 			
 			continue;
 		}
-		
-		// write unchanged bits from the original file up to current key/val
-		//m_io->write(val.pos);
 		
 		// write val
 		m_io->write_str(val.str);
@@ -584,10 +569,6 @@ int IniParser::write_ini()
 		v_entries[i_e]->val.pos += offset;
 		i_e++;
 	}
-	// while (i < v_tokens.size()) {
-	// 	v_tokens[i]->pos += offset;
-	// 	i++;
-	// }
 	
 	// write out any remaining bits from original file
 	m_io->write(-1);
