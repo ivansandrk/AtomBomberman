@@ -175,8 +175,15 @@ void FileIO::skip_space()
 void FileIO::skip_line()
 {
 	int c;
-	while (c = getc(), c != EOF && c != '\n')
+	while (c = getc(), c != EOF && c != '\n' && c != '\r')
 		continue;
+	if (c == EOF) {
+		return;
+	}
+	c = getc();
+	if (c != '\r' && c != '\n') {
+		ungetc(c);
+	}
 }
 
 static int isname(char c)
@@ -235,7 +242,10 @@ ParsedLine& IniParser::parse_line()
 	c = m_io->getc();
 	
 	switch (c) {
+	case '\r':
 	case '\n':
+		m_io->ungetc(c);
+		m_io->skip_line();
 		parsed_line.type = EMPTY;
 		return parsed_line;
 	
@@ -474,7 +484,8 @@ void IniParser::print_ini()
 
 int IniParser::write_ini()
 {
-	int offset = 0, i = 0, i_g = 0, i_e = 0;
+	int offset = 0;
+	unsigned i_g = 0, i_e = 0;
 	
 	std::vector<TokenInfo*> v_tokens;
 	std::vector<TokenInfo*> v_groups;
