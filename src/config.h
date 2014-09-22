@@ -165,6 +165,9 @@ typedef struct _CONFIG {
 	int draw_grid;
 	int show_fps;
 	
+	// Sound
+	int music;
+	
 } CONFIG;
 
 extern CONFIG config;

@@ -159,7 +159,6 @@ int main(int argc, char *argv[])
 	if (init() == -1)
 		return 0;
 	
-	sound_play_loop(SOUND_WIN);
 	while (!config.quit)
 	{
 		get_input();

@@ -82,6 +82,9 @@ int config_init()
 	config.key_draw_grid   = ini_getkey("Video", "key_draw_grid");
 	config.key_show_fps    = ini_getkey("Video", "key_show_fps");
 	
+	// Sound
+	config.music = ini->get_int("Sound", "music", 0);
+	
 	return 0;
 }
 

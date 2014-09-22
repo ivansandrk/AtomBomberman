@@ -68,6 +68,10 @@ int sound_init()
 	for (i = 0; i < SOUNDS_LAST; i++)
 		sound_loop_channel[i] = -1;
 	
+	if (config.music) {
+		sound_play_loop(SOUND_WIN);
+	}
+	
 	return 0;
 }
 
