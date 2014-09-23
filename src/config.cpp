@@ -156,6 +156,7 @@ char* SDL_RWReadLine_comment(char *buf, int size, SDL_RWops *rw)
 	}
 }
 
+// RW_file is used for error reporting
 char RW_file[4096];
 char* RW_readline(SDL_RWops *rw)
 {
