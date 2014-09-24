@@ -68,6 +68,7 @@ int init()
 	}
 	
 	if (config_init() == -1 ||
+		input_init() == -1 ||
 	    graphics_init() == -1 ||
 	    sound_init() == -1 ||
 	    level_init() == -1 ||
@@ -94,6 +95,7 @@ int clean_up()
 	level_quit();
 	sound_quit();
 	graphics_quit();
+	input_quit();
 	config_quit();
 	
 	return 0;

@@ -19,6 +19,8 @@
 typedef std::pair<int, SDL_Event> Dog;
 std::queue<Dog> dogadjaji;
 
+static SDL_Joystick* joystick;
+
 static inline void do_event(SDL_Event event)
 {
 	static int mode_brick = 0;
@@ -36,50 +38,30 @@ static inline void do_event(SDL_Event event)
 		if (event.key.keysym.sym == config.key_show_fps)
 			config.show_fps ^= 1;
 		
-		for (int i = 0; i < n_bombers; i++)
-		{
-			if      (event.key.keysym.sym == config.player_conf[i].key_action1)
-				bombers[i].action1 = 1;
-			else if (event.key.keysym.sym == config.player_conf[i].key_action2)
-				bombers[i].action2 = 1;
-			
-			else if (event.key.keysym.sym == config.player_conf[i].key_up)
-				bombers[i].move_up = 1;
-			else if (event.key.keysym.sym == config.player_conf[i].key_down)
-				bombers[i].move_down = 1;
-			else if (event.key.keysym.sym == config.player_conf[i].key_left)
-				bombers[i].move_left = 1;
-			else if (event.key.keysym.sym == config.player_conf[i].key_right)
-				bombers[i].move_right = 1;
-		}
-		
 		switch (event.key.keysym.sym) {
 		case SDLK_ESCAPE: config.quit = 1; break;
-		
 		case SDLK_4: break;
-		
 		case SDLK_s: break;
-		
 		default: break;
 		}
-		break;
 	
 	case SDL_KEYUP:
 		for (int i = 0; i < n_bombers; i++)
 		{
+			int is_pressed = (event.type == SDL_KEYDOWN);
 			if      (event.key.keysym.sym == config.player_conf[i].key_action1)
-				bombers[i].action1 = 0;
+				bombers[i].action1 = is_pressed;
 			else if (event.key.keysym.sym == config.player_conf[i].key_action2)
-				bombers[i].action2 = 0;
+				bombers[i].action2 = is_pressed;
 			
 			else if (event.key.keysym.sym == config.player_conf[i].key_up)
-				bombers[i].move_up = 0;
+				bombers[i].move_up = is_pressed;
 			else if (event.key.keysym.sym == config.player_conf[i].key_down)
-				bombers[i].move_down = 0;
+				bombers[i].move_down = is_pressed;
 			else if (event.key.keysym.sym == config.player_conf[i].key_left)
-				bombers[i].move_left = 0;
+				bombers[i].move_left = is_pressed;
 			else if (event.key.keysym.sym == config.player_conf[i].key_right)
-				bombers[i].move_right = 0;
+				bombers[i].move_right = is_pressed;
 		}
 		break;
 	
@@ -134,6 +116,53 @@ static inline void do_event(SDL_Event event)
 	// network players set the appropriate values in network code
 }
 
+static inline void do_joystick_event(SDL_Event event)
+{
+	switch (event.type) {
+	case SDL_JOYAXISMOTION:
+		// left/right
+		if (event.jaxis.axis == 0) {
+			if (event.jaxis.value > 0) {
+				bombers[0].move_right = 1;
+			}
+			else if (event.jaxis.value < 0) {
+				bombers[0].move_left = 1;
+			}
+			else {
+				bombers[0].move_left = bombers[0].move_right = 0;
+			}
+		}
+		// up/down
+		else if (event.jaxis.axis == 1) {
+			if (event.jaxis.value > 0) {
+				bombers[0].move_down = 1;
+			}
+			else if (event.jaxis.value < 0) {
+				bombers[0].move_up = 1;
+			}
+			else {
+				bombers[0].move_up = bombers[0].move_down = 0;
+			}
+		}
+		break;
+	case SDL_JOYHATMOTION:
+		bombers[0].move_up    = (event.jhat.value >> 0) & 1;
+		bombers[0].move_right = (event.jhat.value >> 1) & 1;
+		bombers[0].move_down  = (event.jhat.value >> 2) & 1;
+		bombers[0].move_left  = (event.jhat.value >> 3) & 1;
+		break;
+	case SDL_JOYBUTTONDOWN:
+	case SDL_JOYBUTTONUP:
+		if (event.jbutton.button == 3) {
+			bombers[0].action1 = event.type == SDL_JOYBUTTONDOWN;
+		}
+		if (event.jbutton.button == 2) {
+			bombers[0].action2 = event.type == SDL_JOYBUTTONDOWN;
+		}
+		break;
+	}
+}
+
 int get_input()
 {
 	SDL_Event event;
@@ -145,8 +174,37 @@ int get_input()
 	while (!dogadjaji.empty() && time - dogadjaji.front().first > 1) {
 		event = dogadjaji.front().second; dogadjaji.pop();
 		do_event(event);
+		do_joystick_event(event);
 	}
 	
 	return 0;
 }
 
+int input_init()
+{
+	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
+		fprintf(stderr, "Error initialising SDL Joystick subsystem: %s\n", SDL_GetError());
+		return -1;
+	}
+	
+	if (SDL_NumJoysticks() >= 1) {
+		joystick = SDL_JoystickOpen(0);
+		if (joystick == NULL) {
+			fprintf(stderr, "Unable to open joystick: %s\n", SDL_GetError());
+			return -1;
+		}
+		fprintf(stderr, "Joystick name: %s\n", SDL_JoystickName(0));
+	}
+	
+	return 0; // success
+}
+
+int input_quit()
+{
+	if (joystick) {
+		SDL_JoystickClose(joystick);
+		joystick = NULL;
+	}
+	
+	return 0;
+}

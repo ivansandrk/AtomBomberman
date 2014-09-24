@@ -12,6 +12,8 @@
 
 
 int get_input();
+int input_init();
+int input_quit();
 
 
 #endif /* INPUT_H */
