@@ -1,44 +1,35 @@
 CC      = gcc
-LDFLAGS = -lSDL -lGL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -ggdb -lSDL_mixer
-CFLAGS  = -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil
+C++     = g++
+LDFLAGS = -ggdb -Wall -Wextra -O2 -lSDL -lGL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -lSDL_mixer
+CFLAGS  = -std=c++11 -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil/
 
 BIN     = main
-SOURCES = $(addprefix src/, config.c opengl_renderer.c graphics.c sdl_renderer.c \
-            bomber.c input.c level.c bomb.c sounds.c main.c)
-HEADERS = $(addprefix src/, config.h opengl_renderer.h graphics.h sdl_renderer.h \
-            bomber.h input.h level.h bomb.h sound.h)
+SRCDIR  = src
+OBJDIR  = obj
+UTILDIR = util
+SOURCES = $(wildcard $(SRCDIR)/*.cpp)
+UTIL_SOURCES = $(addprefix util/, iniparser.cpp SDL_rwops_zzip.c)
 
-# UTIL doesn't change
-UTIL_SOURCES = iniparser.c dictionary.c SDL_rwops_zzip.c
-UTIL_HEADERS = iniparser.h dictionary.h SDL_rwops_zzip.h utlist.h
-#gcc util/dictionary.c -o obj/dictionary.o -c -O2
-#gcc util/iniparser.c -o obj/iniparser.o -c -O2
-#gcc util/SDL_rwops_zzip.c -o obj/SDL_rwops_zzip.o -c -O2 -I/usr/include/SDL
+OBJECTS      = $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+#OBJECTS      = $(addprefix $(OBJDIR)/, $(notdir $(SOURCES:.cpp=.o)))
+UTIL_OBJECTS = $(addprefix $(OBJDIR)/, iniparser.o SDL_rwops_zzip.o)
 
-OBJECTS = $(SOURCES:.c=.o)
-
-tt:
-	echo $(SOURCES)
 
 all: $(BIN)
 
-$(BIN): $(OBJS)
-	$(CC) -o $(BIN) $(OBJS) $(LDFLAGS)
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+	$(C++) $(CFLAGS) -c $< -o $@
+
+obj/iniparser.o:
+	$(C++) $(CFLAGS) -c util/iniparser.cpp -o obj/iniparser.o
+obj/SDL_rwops_zzip.o:
+	$(CC) $(CFLAGS) -c util/SDL_rwops_zzip.c -o obj/SDL_rwops_zzip.o
+
+$(BIN): $(OBJECTS) $(UTIL_OBJECTS)
+	$(C++) -o $@ $(OBJECTS) $(UTIL_OBJECTS) $(LDFLAGS)
 
 clean:
-	rrm -f $(OBJS) $(BIN)
+	rm -f $(OBJECTS) $(BIN)
 
-
-.cpp: $@.cpp
-	$(CPP) $@.cpp -o $@ $(FLAGS)
-
-.c: $@.c
-	$(CC) -o $@ $@.c $(FLAGS)
-#%.cpp: $*.cpp
-#	$(CPP) $*.cpp -o $* $(FLAGS)
-#ani_parse: ani_parse.c
-#	$(CC) ani_parse.c -o ani_parse -lm
-
-
-main: $(SOURCES) $(HEADERS)
-	$(CC) $(SOURCES) -o $(BIN) $(CFLAGS) $(LDFLAGS)
+CFLAGS += -MMD
+-include $(OBJECTS:.o=.d)

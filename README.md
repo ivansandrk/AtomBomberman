@@ -13,7 +13,7 @@ Install dependencies (on debian):
 
 Compile:
 
-    g++ -o main -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil -lSDL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -lSDL_mixer src/bomb.cpp src/bomber.cpp src/config.cpp src/graphics.cpp src/input.cpp src/level.cpp src/main.cpp src/sdl_renderer.cpp src/opengl_renderer.cpp src/sound.cpp util/iniparser.cpp util/SDL_rwops_zzip.c
+    make
 
 
 Run:
