@@ -29,7 +29,7 @@ $(BIN): $(OBJECTS) $(UTIL_OBJECTS)
 	$(C++) -o $@ $(OBJECTS) $(UTIL_OBJECTS) $(LDFLAGS)
 
 clean:
-	rm -f $(OBJECTS) $(BIN)
+	rm -f $(OBJDIR)/*
 
 CFLAGS += -MMD
 -include $(OBJECTS:.o=.d)
