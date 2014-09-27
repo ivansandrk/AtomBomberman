@@ -12,7 +12,7 @@
 #define CONFIG_H
 
 
-#include "SDL_keysym.h"
+#include "SDL_keycode.h"
 #include "SDL_rwops.h"
 
 
@@ -107,12 +107,12 @@ const int heading_y[] = {1, -1,  0, 0};
 
 
 typedef struct _PLAYER_CONF {
-	SDLKey key_up;
-	SDLKey key_down;
-	SDLKey key_left;
-	SDLKey key_right;
-	SDLKey key_action1;
-	SDLKey key_action2;
+	SDL_Keycode key_up;
+	SDL_Keycode key_down;
+	SDL_Keycode key_left;
+	SDL_Keycode key_right;
+	SDL_Keycode key_action1;
+	SDL_Keycode key_action2;
 	int color;
 	int team;
 	int start_row;
@@ -154,10 +154,10 @@ typedef struct _CONFIG {
 // ************************************************
 // ************************************************
 	
-	SDLKey key_pause_time;
-	SDLKey key_bullet_time;
-	SDLKey key_draw_grid;
-	SDLKey key_show_fps;
+	SDL_Keycode key_pause_time;
+	SDL_Keycode key_bullet_time;
+	SDL_Keycode key_draw_grid;
+	SDL_Keycode key_show_fps;
 	
 	int pause_time;
 	int bullet_time;
@@ -177,8 +177,8 @@ extern int frames_per_second;
 
 
 
-int ini_getconstant(const char *section, const char *key, int def_val = 0);
-SDLKey ini_getkey(const char *section, const char *key);
+int ini_getcolor(const char *player);
+SDL_Keycode ini_getkey(const char *section, const char *key);
 
 char* SDL_RWReadLine        (char *buf, int size, SDL_RWops *rw);
 char* SDL_RWReadLine_comment(char *buf, int size, SDL_RWops *rw);

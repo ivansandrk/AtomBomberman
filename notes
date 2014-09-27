@@ -141,6 +141,8 @@ all sounds loaded use ~35MB memory
 
 
 TODO:
+** switch to SDL2
+
 ** shortcut to mute sound & .ini settings regarding sound
 
 ** put global variables into a single .cpp file
@@ -151,8 +153,6 @@ TODO:
 -- the idiot who wrote it doesn't know what hash is used for in a dictionary
 -- parser needs to support writing back to .ini file
 
-
-** fix makefile
 
 ** play around with the idea of network play, do some test
 -- #1 implement input lag to test network lag
@@ -175,6 +175,7 @@ TODO:
 
 
 DONE:
+** fix makefile
 ** remove UTLIST, use STL
 ** remove caption from config.ini, make it a #define
 ** separate config from renderers (remove it) -- fix hackity-hack-hack

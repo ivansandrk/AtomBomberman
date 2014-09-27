@@ -1,7 +1,8 @@
 CC      = gcc
 C++     = g++
-LDFLAGS = -ggdb -Wall -Wextra -O2 -lSDL -lGL -lSDL_image -lzzip -lSDL_gfx -lSDL_ttf -lSDL_mixer
-CFLAGS  = -std=c++11 -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL -Iutil/
+LDFLAGS = -ggdb -Wall -Wextra -O2 -lzzip -lSDL2 -lSDL2_image -lSDL2_gfx -lSDL2_ttf -lSDL2_mixer
+CFLAGS  = -std=c++11 -ggdb -Wall -Wextra -O2 -Iutil/ `sdl2-config --cflags` -Wno-unused-variable -Wno-unused-parameter
+#CFLAGS  = -std=c++11 -ggdb -Wall -Wextra -O2 -D_GNU_SOURCE -I/usr/include/SDL2 -Iutil/
 
 BIN     = main
 SRCDIR  = src
@@ -33,3 +34,4 @@ clean:
 
 CFLAGS += -MMD
 -include $(OBJECTS:.o=.d)
+-include $(UTIL_OBJECTS:.o=.d)

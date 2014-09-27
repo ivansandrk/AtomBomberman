@@ -5,14 +5,16 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
-#include "SDL_gfxPrimitives.h"
+//#include "SDL_gfxPrimitives.h"
 #include "SDL_rwops_zzip.h"
 
 //#include "config.h"
 #include "sdl_renderer.h"
 
 
-static SDL_Surface *screen;
+static SDL_Surface  *screen;
+static SDL_Window   *window;
+static SDL_Renderer *renderer;
 static TTF_Font *font;
 static int g_width, g_height;
 
@@ -27,13 +29,23 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 		return -1;
 	}
 	
-	if ((screen = SDL_SetVideoMode(width, height, bits_per_pixel, SDL_HWSURFACE)) == 0)
+	if (window = SDL_CreateWindow(caption, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0), !window) {
+		fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
+		return -1;
+	}
+	
+	if (renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED), !renderer) {
+		fprintf(stderr, "Error creating renderer: %s\n", SDL_GetError());
+		return -1;
+	}
+	
+	screen = SDL_GetWindowSurface(window);
+/*	if ((screen = SDL_SetVideoMode(width, height, bits_per_pixel, SDL_HWSURFACE)) == 0)
 	{
 		fprintf(stderr, "Error setting Video Mode: %s\n", SDL_GetError());
 		return -1;
 	}
-	
-	SDL_WM_SetCaption(caption, 0);
+	SDL_WM_SetCaption(caption, 0);//*/
 	
 	if (TTF_Init() == -1)
 	{
@@ -42,12 +54,15 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 	}
 	
 	SDL_RWops *data = SDL_RWFromZZIP(font_path, "r");
-	font = TTF_OpenFontRW(data, 1, 12);
-	if (font == 0)
-	{
-		fprintf(stderr, "Error loading font (%s) : %s\n", font_path, TTF_GetError());
+	if ((data = SDL_RWFromZZIP(font_path, "r")) == NULL) {
+		fprintf(stderr, "Unable to load font data: %s\n", SDL_GetError());
 		return -1;
 	}
+	
+	/*if ((font = TTF_OpenFontRW(data, 1, 12)) == NULL) {
+		fprintf(stderr, "Error loading font (%s) : %s\n", font_path, TTF_GetError());
+		return -1;
+	}//*/
 	
 	return 0;
 }
@@ -75,7 +90,7 @@ int sdl_renderer_load_image(SDL_RWops *data, Image *im)
 	im->width  = surf->w;
 	im->height = surf->h;
 	if (im->colorkey_index >= 0 && im->colorkey_index <= 255)
-		SDL_SetColorKey(surf, SDL_SRCCOLORKEY, im->colorkey_index);
+		SDL_SetColorKey(surf, SDL_TRUE, im->colorkey_index);
 	
 	return 0;
 }
@@ -90,13 +105,27 @@ int sdl_renderer_free_image(Image *im)
 int sdl_renderer_draw(Image *im, void *pal, int x, int y)
 {
 	SDL_Rect rect = {(Sint16)x, (Sint16)(g_height-y-im->surf->h), 0, 0};
+	SDL_Texture *texture;
 	
-	if (pal)
-	{
-		SDL_SetPalette(im->surf, SDL_LOGPAL, (SDL_Color*) pal, 0, 256);
+	if (pal) {
+		//SDL_SetPalette(im->surf, SDL_LOGPAL, (SDL_Color*) pal, 0, 256);
+		SDL_Palette p;// = {256, (SDL_Color*)pal};
+		p.ncolors = 256; p.colors = (SDL_Color*)pal;
+		//SDL_SetPaletteColors(&p, (SDL_Color*)pal, 0, 256);
+		if (SDL_SetSurfacePalette(im->surf, &p) < 0) {
+			fprintf(stderr, "SetSurfacePalette failed: %s\n", SDL_GetError());
+			return -1;
+		}//*/
+		
 	}
 	
 	SDL_BlitSurface(im->surf, 0, screen, &rect);
+	/*if ((texture = SDL_CreateTextureFromSurface(renderer, im->surf)) == NULL) {
+		fprintf(stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+		return -1;
+	}
+	SDL_RenderCopy(renderer, texture, NULL, &rect);
+	SDL_DestroyTexture(texture);//*/
 	
 	return 0;
 }
@@ -110,7 +139,9 @@ int sdl_renderer_drawing_begin()
 
 int sdl_renderer_drawing_end()
 {
-	SDL_UpdateRect(screen, 0, 0, g_width, g_height);
+	//SDL_UpdateRect(screen, 0, 0, g_width, g_height);
+	//SDL_RenderPresent(renderer);
+	SDL_UpdateWindowSurface(window);
 	
 	return 0;
 }
@@ -128,10 +159,10 @@ int sdl_renderer_print(int x, int y, char *str)
 	SDL_Color color = {255, 0, 0, 255};
 	SDL_Surface *surf_text;
 	
-	surf_text = TTF_RenderText_Blended(font, str, color);
+	//surf_text = TTF_RenderText_Blended(font, str, color);
 	
 	SDL_Rect rect = {(Sint16)x, (Sint16)(g_height-y-surf_text->h), 0, 0};
-	SDL_BlitSurface(surf_text, 0, screen, &rect);
+	//SDL_BlitSurface(surf_text, 0, screen, &rect);
 	SDL_FreeSurface(surf_text);
 	
 	return 0;
@@ -141,7 +172,7 @@ int sdl_renderer_print(int x, int y, char *str)
 int sdl_renderer_draw_square(int x, int y, int size, int color)
 {
 	SDL_Rect rect = {(Sint16)(x-(size-1)), (Sint16)(g_height-y-(size-1)), (Uint16)(2*size-1), (Uint16)(2*size-1)};
-	SDL_FillRect(screen, &rect, color);
+	//SDL_FillRect(screen, &rect, color);
 	
 	return 0;
 }
@@ -152,7 +183,7 @@ int sdl_renderer_draw_vline(int x, int y0, int y1, int color)
 	color = ((color & 0xff000000) >> 24) |
 	        ((color & 0x00ffffff) << 8);
 	
-	vlineColor(screen, x, g_height - y1, g_height - y0, color);
+	//vlineColor(screen, x, g_height - y1, g_height - y0, color);
 	
 	return 0;
 }
@@ -163,7 +194,7 @@ int sdl_renderer_draw_hline(int x0, int x1, int y, int color)
 	color = ((color & 0xff000000) >> 24) |
 	        ((color & 0x00ffffff) << 8);
 	
-	hlineColor(screen, x0, x1, g_height - y, color);
+	//hlineColor(screen, x0, x1, g_height - y, color);
 	
 	return 0;
 }

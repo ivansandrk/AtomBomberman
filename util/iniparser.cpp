@@ -194,7 +194,7 @@ static int isname(char c)
 
 static int isval(char c)
 {
-	return c != kCommentBegin && c != EOF && c != ' ' && c != '\t' && c != '\n' && c != '\r';
+	return c != kCommentBegin && c != EOF && c != '\n' && c != '\r';
 }
 
 // reads group/key [_A-Za-z0-9]*
@@ -214,11 +214,42 @@ std::string FileIO::read_name()
 std::string FileIO::read_val()
 {
 	int c, pos=0;
+	// used for parsing things like "abc \"def\"\\ghi" -> abc "def"\ghi
+	int quoted = 0, escaped = 0;
 	char buf[65536];
 	
-	while (c = getc(), isval(c) && pos < (int)sizeof(buf))
-		buf[pos++] = c;
-	ungetc(c);
+	c = getc();
+	if (c == '"') {
+		while (pos+1 < (int)sizeof(buf)) {
+			c = getc();
+			if (!escaped) {
+				if (c == '\\') {
+					escaped = 1;
+				}
+				else if (c == '"') {
+					break;
+				}
+				else {
+					buf[pos++] = c;
+				}
+			}
+			else {
+				escaped = 0;
+				if (c != '\\' && c != '"') {
+					buf[pos++] = '\\';
+				}
+				buf[pos++] = c;
+			}
+		}
+	}
+	else {
+		ungetc(c);
+		while (c = getc(), isval(c) && pos < (int)sizeof(buf))
+			buf[pos++] = c;
+		ungetc(c);
+		while (buf[pos-1] == ' ' || buf[pos-1] == '\t')
+			pos--;
+	}
 	
 	return std::string(buf, buf+pos);
 }

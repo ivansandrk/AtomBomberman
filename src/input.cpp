@@ -104,7 +104,7 @@ static inline void do_event(SDL_Event event)
 	case SDL_MOUSEBUTTONUP: mode_brick = 0; break;
 	
 	/* if it needs redrawing swapping buffers is usually enough */
-	case SDL_VIDEOEXPOSE: /*SDL_GL_SwapBuffers();*/ break;
+	//case SDL_VIDEOEXPOSE: /*SDL_GL_SwapBuffers();*/ break;
 	default: break;
 	}
 	

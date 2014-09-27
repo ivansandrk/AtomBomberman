@@ -15,7 +15,6 @@
 #include <assert.h>
 #include <ctype.h>
 
-//#define USE_SDL_ZZIP
 #include "iniparser.h"
 
 
@@ -26,7 +25,6 @@ float delta_time_real;
 int frames_per_second;
 
 static IniParser* ini;
-static IniParser* constants;
 
 
 int config_init()
@@ -35,15 +33,14 @@ int config_init()
 	char buf[1024];
 	
 	
-	ini       = ParseFILE(CONFIG_FILE);
-	constants = ParseZZIP(CONSTANTS_FILE);
+	ini = ParseFILE(CONFIG_FILE);
 	
-	if (ini == NULL || constants == NULL)
+	if (ini == NULL)
 		return -1;
 	
 	config.quit = 0;
 	
-	config.graphics_renderer = ini_getconstant("Video", "renderer", AUTO_RENDERER);
+	config.graphics_renderer = ini->get_int("Video", "renderer", AUTO_RENDERER);
 	config.width = SCREEN_WIDTH;
 	config.height = SCREEN_HEIGHT;
 	config.bits_per_pixel = SCREEN_BITS_PER_PIXEL;
@@ -60,7 +57,7 @@ int config_init()
 		config.player_conf[i].key_right   = ini_getkey(buf, "key_right");
 		config.player_conf[i].key_action1 = ini_getkey(buf, "key_action1");
 		config.player_conf[i].key_action2 = ini_getkey(buf, "key_action2");
-		config.player_conf[i].color       = ini_getconstant(buf, "color");
+		config.player_conf[i].color       = ini_getcolor(buf);
 		config.player_conf[i].team        = ini->get_int(buf, "team", 0);
 	}
 	
@@ -91,7 +88,6 @@ int config_init()
 int config_quit()
 {
 	delete ini;
-	delete constants;
 	
 	return 0;
 }
@@ -198,15 +194,23 @@ int RW_file_set(const char *file)
 	return 0;
 }
 
-int ini_getconstant(const char *section, const char *key, int def_val)
+int ini_getcolor(const char* player)
 {
-	const char *str;
-	
-	str = ini->get_string(section, key);
-	return constants->get_int("Constants", str, def_val);
+	static const char* color[10] = {"WHITE", "BLACK", "RED", "BLUE", "GREEN", "YELLOW", "CYAN", "MAGENTA", "ORANGE", "PURPLE"};
+	char buf[128];
+	strncpy(buf, ini->get_string(player, "color"), sizeof(buf)-1);
+	for (char* str = buf; *str; str++) {
+		*str = toupper(*str);
+	}
+	for (int i = 0; i < 10; i++) {
+		if (strcmp(buf, color[i]) == 0) {
+			return i;
+		}
+	}
+	return 0;
 }
 
-SDLKey ini_getkey(const char *section, const char *key)
+SDL_Keycode ini_getkey(const char *section, const char *key)
 {
-	return (SDLKey) ini_getconstant(section, key);
+	return SDL_GetKeyFromName(ini->get_string(section, key));
 }

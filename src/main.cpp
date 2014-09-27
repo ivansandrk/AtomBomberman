@@ -117,6 +117,7 @@ int draw_all()
 		char buf[128];
 		
 		sprintf(buf, "FPS %d", frames_per_second);
+		//fprintf(stderr, "%s\t", buf);
 		print(570, 460, buf);
 	}
 	

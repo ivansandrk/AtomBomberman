@@ -77,6 +77,7 @@ int opengl_renderer_quit(void)
 
 void SurfaceFormatInfo(SDL_PixelFormat *f)
 {
+#ifdef USE_OPENGL
 	fprintf(stderr, "palette %p\n", f->palette);
 	fprintf(stderr, "BitsPerPixel %d\n", f->BitsPerPixel);
 	fprintf(stderr, "BytesPerPixel %d\n", f->BytesPerPixel);
@@ -85,6 +86,9 @@ void SurfaceFormatInfo(SDL_PixelFormat *f)
 	fprintf(stderr, "Rloss %d Gloss %d Bloss %d Aloss %d\n", f->Rloss, f->Gloss, f->Bloss, f->Aloss);
 	fprintf(stderr, "colorkey %x\n", f->colorkey);
 	fprintf(stderr, "alpha %x\n", f->alpha);
+#else
+	(void)f;
+#endif
 }
 
 int opengl_renderer_load_texture(SDL_RWops *data, Image *im)

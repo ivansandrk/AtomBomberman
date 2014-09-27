@@ -14,15 +14,17 @@
  * - save_ini reads the whole file into memory; memory may be an issue
  * - max ini file size is 2^31-1 (int) ~~ 2GB
  * - renaming keys isn't allowed; only adding or deleting
+ * - val is read until comment or end of line and whitespace is stripped (ie. python .strip())
+ * - val can be quoted (*everything* between quotes is read, even newlines), eg. "abc \"def\"\\ghi"
  *
  * PROBLEMS:
- * when something new gets saved, all following indexes are invalid
+ * when something new gets saved, all following indexes are invalid - FIXED (I think)
  * skip_line, isval, parse_line case '\n'
- * -> handles only linux newlines - fix this? TODO
+ * -> handles only linux newlines - fix this? FIXED!
  */
 
-// TODO: this define needs to be removed
-#define USE_SDL_ZZIP
+// TODO: this define needs to be removed (used here so IDE doesn't complain)
+//#define USE_SDL_ZZIP
 
 
 // a separate class for reading/writing to ease extensibility
