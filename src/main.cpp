@@ -61,19 +61,19 @@ int init()
 {
 	srand(time(0) ^ getpid());
 	
-	if (SDL_Init(0) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		fprintf(stderr, "Error initialising SDL: %s\n", SDL_GetError());
 		return -1;
 	}
 	
-	if (config_init() == -1 ||
-		input_init() == -1 ||
-	    graphics_init() == -1 ||
-	    sound_init() == -1 ||
-	    level_init() == -1 ||
-	    bomber_init() == -1 ||
-	    bomb_init() == -1)
+	if (config_init()   == -1 ||
+		graphics_init() == -1 ||
+		input_init()    == -1 ||
+		sound_init()    == -1 ||
+		level_init()    == -1 ||
+		bomber_init()   == -1 ||
+		bomb_init()     == -1)
 	{
 		return -1;
 	}
@@ -94,8 +94,8 @@ int clean_up()
 	bomber_quit();
 	level_quit();
 	sound_quit();
-	graphics_quit();
 	input_quit();
+	graphics_quit();
 	config_quit();
 	
 	return 0;
@@ -149,6 +149,7 @@ int calc_fps()
 		frames_per_second = frames / fps_time;
 		fps_time = 0.0f;
 		frames = 0;
+		fprintf(stderr, "FPS %d\n", frames_per_second);
 	}
 	
 	return 0;

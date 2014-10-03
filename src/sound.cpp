@@ -45,12 +45,6 @@ int sound_init()
 	int i;
 	int flags = MIX_INIT_OGG;
 	
-	if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1)
-	{
-		fprintf(stderr, "Error initialising SDL Audio subsystem: %s\n", SDL_GetError());
-		return -1;
-	}
-	
 	if ((Mix_Init(flags)&flags) != flags)
 	{
 		fprintf(stderr, "Error initialising mixer: %s\n", Mix_GetError());

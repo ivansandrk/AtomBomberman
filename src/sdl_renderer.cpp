@@ -23,29 +23,19 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 	g_width  = width;
 	g_height = height;
 	
-	if (SDL_InitSubSystem(SDL_INIT_VIDEO) == -1)
-	{
-		fprintf(stderr, "Error initialising SDL Video subsystem: %s\n", SDL_GetError());
-		return -1;
-	}
-	
-	if (window = SDL_CreateWindow(caption, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0), !window) {
+	window = SDL_CreateWindow(caption, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
+	if (window == NULL) {
 		fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
 		return -1;
 	}
 	
-	if (renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED), !renderer) {
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	if (renderer == NULL) {
 		fprintf(stderr, "Error creating renderer: %s\n", SDL_GetError());
 		return -1;
 	}
 	
 	screen = SDL_GetWindowSurface(window);
-/*	if ((screen = SDL_SetVideoMode(width, height, bits_per_pixel, SDL_HWSURFACE)) == 0)
-	{
-		fprintf(stderr, "Error setting Video Mode: %s\n", SDL_GetError());
-		return -1;
-	}
-	SDL_WM_SetCaption(caption, 0);//*/
 	
 	if (TTF_Init() == -1)
 	{
@@ -54,15 +44,17 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 	}
 	
 	SDL_RWops *data = SDL_RWFromZZIP(font_path, "r");
-	if ((data = SDL_RWFromZZIP(font_path, "r")) == NULL) {
+	//SDL_RWops *data = SDL_RWFromFile("FreeSans.ttf", "r");
+	if (data == NULL) {
 		fprintf(stderr, "Unable to load font data: %s\n", SDL_GetError());
 		return -1;
 	}
 	
-	/*if ((font = TTF_OpenFontRW(data, 1, 12)) == NULL) {
+	if ((font = TTF_OpenFontRW(data, 1, 12)) == NULL) {
 		fprintf(stderr, "Error loading font (%s) : %s\n", font_path, TTF_GetError());
 		return -1;
 	}//*/
+	//font = TTF_OpenFont("FreeSans.ttf", 12);
 	
 	return 0;
 }
@@ -108,15 +100,8 @@ int sdl_renderer_draw(Image *im, void *pal, int x, int y)
 	SDL_Texture *texture;
 	
 	if (pal) {
+		SDL_SetPaletteColors(im->surf->format->palette, (SDL_Color*)pal, 0, 256);
 		//SDL_SetPalette(im->surf, SDL_LOGPAL, (SDL_Color*) pal, 0, 256);
-		SDL_Palette p;// = {256, (SDL_Color*)pal};
-		p.ncolors = 256; p.colors = (SDL_Color*)pal;
-		//SDL_SetPaletteColors(&p, (SDL_Color*)pal, 0, 256);
-		if (SDL_SetSurfacePalette(im->surf, &p) < 0) {
-			fprintf(stderr, "SetSurfacePalette failed: %s\n", SDL_GetError());
-			return -1;
-		}//*/
-		
 	}
 	
 	SDL_BlitSurface(im->surf, 0, screen, &rect);

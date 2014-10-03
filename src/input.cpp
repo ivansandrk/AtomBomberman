@@ -171,7 +171,7 @@ int get_input()
 		dogadjaji.push(Dog(SDL_GetTicks(), event));
 	
 	int time = SDL_GetTicks();
-	while (!dogadjaji.empty() && time - dogadjaji.front().first > 1) {
+	while (!dogadjaji.empty() && time - dogadjaji.front().first > -1) {
 		event = dogadjaji.front().second; dogadjaji.pop();
 		do_event(event);
 		do_joystick_event(event);
@@ -182,10 +182,10 @@ int get_input()
 
 int input_init()
 {
-	if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
+	/*if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {
 		fprintf(stderr, "Error initialising SDL Joystick subsystem: %s\n", SDL_GetError());
 		return -1;
-	}
+	}// TODO remove */
 	
 	if (SDL_NumJoysticks() >= 1) {
 		joystick = SDL_JoystickOpen(0);
@@ -195,6 +195,7 @@ int input_init()
 		}
 		fprintf(stderr, "Joystick name: %s\n", SDL_JoystickName(0));
 	}
+	SDL_JoystickEventState(SDL_ENABLE);
 	
 	return 0; // success
 }
