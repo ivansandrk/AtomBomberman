@@ -44,7 +44,6 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 	}
 	
 	SDL_RWops *data = SDL_RWFromZZIP(font_path, "r");
-	//SDL_RWops *data = SDL_RWFromFile("FreeSans.ttf", "r");
 	if (data == NULL) {
 		fprintf(stderr, "Unable to load font data: %s\n", SDL_GetError());
 		return -1;
@@ -53,8 +52,7 @@ int sdl_renderer_init(int width, int height, int bits_per_pixel, const char capt
 	if ((font = TTF_OpenFontRW(data, 1, 12)) == NULL) {
 		fprintf(stderr, "Error loading font (%s) : %s\n", font_path, TTF_GetError());
 		return -1;
-	}//*/
-	//font = TTF_OpenFont("FreeSans.ttf", 12);
+	}
 	
 	return 0;
 }
@@ -144,10 +142,10 @@ int sdl_renderer_print(int x, int y, char *str)
 	SDL_Color color = {255, 0, 0, 255};
 	SDL_Surface *surf_text;
 	
-	//surf_text = TTF_RenderText_Blended(font, str, color);
+	surf_text = TTF_RenderText_Blended(font, str, color);
 	
 	SDL_Rect rect = {(Sint16)x, (Sint16)(g_height-y-surf_text->h), 0, 0};
-	//SDL_BlitSurface(surf_text, 0, screen, &rect);
+	SDL_BlitSurface(surf_text, 0, screen, &rect);
 	SDL_FreeSurface(surf_text);
 	
 	return 0;
