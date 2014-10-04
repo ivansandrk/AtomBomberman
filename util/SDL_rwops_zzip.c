@@ -40,6 +40,13 @@ static int _zzip_close(SDL_RWops *context)
     return 0;
 }
 
+static Sint64 _zzip_size(SDL_RWops *context)
+{
+    ZZIP_STAT zs;
+    zzip_fstat(SDL_RWOPS_ZZIP_FILE(context), &zs);
+    return zs.st_size;
+}
+
 SDL_RWops *SDL_RWFromZZIP(const char* file, const char* mode)
 {
     register SDL_RWops* rwops;
@@ -59,5 +66,6 @@ SDL_RWops *SDL_RWFromZZIP(const char* file, const char* mode)
     rwops->write = _zzip_write;
     rwops->seek = _zzip_seek;
     rwops->close = _zzip_close;
+    rwops->size = _zzip_size;
     return rwops;
 }
